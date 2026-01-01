@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+    <title>Test Document</title>
+    <items>
+        <item id="1">First Item</item>
+        <item id="2">Second Item</item>
+    </items>
+</root>

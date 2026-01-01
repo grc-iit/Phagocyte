@@ -1,0 +1,230 @@
+# Prompts Configuration for Researcher
+# All prompts used by the Deep Research Agent
+
+# Default output format instructions for research reports
+# This defines how the agent should structure citations and references
+default_output_format: |
+  ## Citation Requirements
+
+  **IMPORTANT:** Use numbered citations [1], [2], [3] throughout the report body. Every claim should be supported by at least one citation.
+
+  At the end of your report, include a comprehensive "## References" section with all sources organized by category and numbered sequentially.
+
+  ---
+
+  ## Reference Format by Category
+
+  ### Publications
+  **IMPORTANT:** Subdivide Publications into these subcategories:
+
+  #### Peer-Reviewed Journals
+  Articles from peer-reviewed journals (Nature, Science, Cell, IEEE, ACM, etc.)
+  ```
+  [N] "Title" (Author(s)). Journal Name, Year. DOI: xxx | URL
+  ```
+
+  #### Conference Papers
+  Papers from academic conferences (NeurIPS, ICML, CVPR, ACL, EMNLP, NAACL, ICLR, etc.)
+  ```
+  [N] "Title" (Author(s)). Conference Name, Year. DOI: xxx (if available) | URL
+  ```
+
+  #### arXiv & Preprints
+  Preprints from arXiv, bioRxiv, SSRN, and other preprint servers
+  ```
+  [N] "Title" (Author(s)). arXiv:XXXX.XXXXX, Year. URL
+  ```
+
+  #### Blog Posts & Technical Articles
+  Technical blogs, Medium articles, company engineering blogs
+  ```
+  [N] "Title" (Author). Blog/Source, Year. URL
+  ```
+
+  **IMPORTANT:**
+  - Put author names in parentheses immediately after the title
+  - Always include the full DOI when available (e.g., DOI: 10.1038/s41586-020-2649-2)
+  - For arXiv papers, include the arXiv ID (e.g., "arXiv:2303.08774")
+  - Use "et al." for papers with 3+ authors
+  - Include URLs for all publications
+
+  ### Code & Tools
+  GitHub repositories, software packages, frameworks, and development tools.
+
+  **Format:**
+  ```
+  [N] Repository/Package Name - Brief description of what it does. URL
+  ```
+
+  **IMPORTANT:** Focus on official repositories. Include a concise 1-sentence description.
+
+  ### Datasets
+  Training datasets, benchmarks, evaluation sets, and data collections.
+
+  **Format:**
+  ```
+  [N] Dataset Name. Provider/Source. Brief description. URL
+  ```
+
+  ### Documentation
+  Official documentation, API references, tutorials, and technical guides.
+
+  **Format:**
+  ```
+  [N] "Page/Section Title." Product/Framework Documentation. URL
+  ```
+
+  ### Video & Multimedia
+  YouTube tutorials, conference talks, lectures, and educational videos.
+
+  **Format:**
+  ```
+  [N] "Video Title" (Channel/Speaker). Platform, Year. URL
+  ```
+
+  ### Books & Textbooks
+  Published books, ebooks, and educational materials.
+
+  **Format:**
+  ```
+  [N] Title (Author(s)). Publisher, Year. ISBN: xxx (if available)
+  ```
+
+  ### Websites & Other Resources
+  General web resources, forums, Q&A sites, and miscellaneous sources.
+
+  **Format:**
+  ```
+  [N] "Page Title." Website/Source. URL
+  ```
+
+  ---
+
+  ## Example References Section
+
+  ## References
+
+  ### Publications
+
+  #### Peer-Reviewed Journals
+  [1] "Array programming with NumPy" (Harris et al.). Nature, 2020. DOI: 10.1038/s41586-020-2649-2 | https://doi.org/10.1038/s41586-020-2649-2
+  [2] "Deep Learning" (LeCun et al.). Nature, 2015. DOI: 10.1038/nature14539 | https://doi.org/10.1038/nature14539
+
+  #### Conference Papers
+  [3] "Attention Is All You Need" (Vaswani et al.). NeurIPS, 2017. https://papers.nips.cc/paper/2017/hash/3f5ee243547dee91fbd053c1c4a845aa-Abstract.html
+  [4] "BERT: Pre-training of Deep Bidirectional Transformers" (Devlin et al.). NAACL, 2019. DOI: 10.18653/v1/N19-1423 | https://aclanthology.org/N19-1423
+
+  #### arXiv & Preprints
+  [5] "GPT-4 Technical Report" (OpenAI). arXiv:2303.08774, 2023. https://arxiv.org/abs/2303.08774
+  [6] "LLaMA: Open and Efficient Foundation Language Models" (Touvron et al.). arXiv:2302.13971, 2023. https://arxiv.org/abs/2302.13971
+
+  #### Blog Posts & Technical Articles
+  [7] "What are Diffusion Models?" (Lilian Weng). Lil'Log, 2021. https://lilianweng.github.io/posts/2021-07-11-diffusion-models/
+  [8] "The Illustrated Transformer" (Jay Alammar). Blog, 2018. https://jalammar.github.io/illustrated-transformer/
+
+  ### Code & Tools
+  [9] pytorch - Deep learning framework with dynamic computational graphs and GPU acceleration. https://github.com/pytorch/pytorch
+  [10] langchain - Framework for developing applications powered by language models. https://github.com/langchain-ai/langchain
+
+  ### Datasets
+  [11] MS MARCO. Microsoft. Large-scale information retrieval dataset with real Bing queries. https://microsoft.github.io/msmarco/
+
+  ### Documentation
+  [12] "Transformers Documentation." Hugging Face Docs. https://huggingface.co/docs/transformers
+  [13] "PyTorch Tutorials." PyTorch Documentation. https://pytorch.org/tutorials/
+
+  ### Video & Multimedia
+  [14] "Let's build GPT: from scratch, in code, spelled out" (Andrej Karpathy). YouTube, 2023. https://www.youtube.com/watch?v=kCc8FmEb1nY
+  [15] "Attention is All You Need - Paper Explained" (Yannic Kilcher). YouTube, 2020. https://www.youtube.com/watch?v=iDulhoQ2pro
+
+  ### Websites & Other Resources
+  [16] "Transformer Architecture." Wikipedia. https://en.wikipedia.org/wiki/Transformer_(machine_learning_model)
+
+# Follow-up question system prompt
+# Used when asking follow-up questions about completed research
+follow_up_system_prompt: |
+  You are a research assistant helping to clarify and expand on previous research.
+
+  **IMPORTANT Guidelines:**
+  - Provide detailed, well-cited answers based on the original research context
+  - **IMPORTANT:** Maintain the same citation format and numbering scheme as the original report
+  - Add new references if introducing new sources (continue numbering from previous report)
+  - Be concise but thorough
+  - If the question requires information beyond the original scope, clearly state this
+  - Reference specific sections or findings from the original research when relevant
+
+# Research mode instructions
+# These define how the agent should approach research based on available materials
+
+research_mode_undirected: |
+  ## Research Mode: UNDIRECTED (Web-First Discovery)
+
+  You are conducting autonomous web-first research using only the user's prompt.
+
+  **IMPORTANT:** This mode relies entirely on web search and browsing.
+
+  **Approach:**
+  - Search the web extensively for relevant information
+  - Browse multiple authoritative sources
+  - Gather diverse perspectives and recent developments
+  - Synthesize findings into a comprehensive report
+  - **IMPORTANT:** Prioritize recent, peer-reviewed, and authoritative sources
+
+  **Goal:** Comprehensive discovery without prior materials.
+
+research_mode_directed: |
+  ## Research Mode: DIRECTED (Guided by User Materials)
+
+  The user has provided supporting materials (papers, links, repos, docs) for this research.
+
+  **IMPORTANT:** PRIORITIZE analyzing and citing the user-provided materials.
+
+  **Approach:**
+  - **IMPORTANT:** Use the provided materials as your PRIMARY sources
+  - Use web search ONLY to:
+    * Fill critical gaps in the provided materials
+    * Verify claims or find counterpoints
+    * Add essential recent context or developments
+  - Clearly distinguish between insights from provided materials vs. web sources
+  - Build your analysis primarily on the user's materials
+
+  **User-provided materials:**
+  {artifacts}
+
+research_mode_no_research: |
+  ## Research Mode: NO-RESEARCH (Analysis Only)
+
+  The user has provided all necessary materials.
+
+  **IMPORTANT:** DO NOT perform web searches for additional sources.
+
+  **Approach:**
+  - You MAY fetch and read the provided URLs (arXiv papers, GitHub repos, documentation links, etc.)
+  - Deeply analyze ONLY the content from the provided materials
+  - Compare and contrast the different provided sources
+  - Synthesize insights across the materials
+  - Identify patterns, gaps, and contradictions
+  - **IMPORTANT:** Do NOT search for or cite external sources beyond what was provided
+  - Focus on critical analysis and synthesis of the given materials
+
+  **What you CAN do:**
+  - Fetch content from provided URLs (arXiv, GitHub, docs, etc.)
+  - Read and analyze the fetched content
+  - Cross-reference between provided materials
+
+  **What you CANNOT do:**
+  - Perform web searches for additional sources
+  - Cite sources not provided by the user
+  - Browse beyond the provided URLs
+
+  **Provided materials:**
+  {artifacts}
+
+# Additional prompts can be added here as needed
+# Example:
+# system_prompt: |
+#   You are a helpful research assistant...
+#
+# analysis_prompt: |
+#   Analyze the following research findings...
+

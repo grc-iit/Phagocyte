@@ -1,0 +1,26 @@
+# Researcher Configuration
+# Configuration for Gemini Deep Research Agent
+
+# API Configuration
+# Set your Google API key here (or use GOOGLE_API_KEY environment variable)
+api_key: ""  # Your Google API key
+
+# Research settings
+research:
+  max_wait_time: 3600        # Maximum time to wait for research completion (seconds)
+  poll_interval: 10          # Interval between status checks (seconds)
+  enable_streaming: true     # Stream progress updates in real-time
+  enable_thinking: true      # Show agent's thinking process
+  include_identifiers: true  # Request arXiv IDs, DOIs in output
+
+# Output settings
+output:
+  directory: ./output        # Default output directory
+  save_thinking_steps: true  # Save thinking steps to separate file
+
+# Agent configuration
+agent:
+  name: deep-research-pro-preview-12-2025
+
+# Verbose output
+verbose: false

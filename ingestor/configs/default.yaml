@@ -1,0 +1,37 @@
+# Ingestor Default Configuration
+# Copy this file to customize settings
+
+images:
+  convert_to_png: true      # Convert all images to PNG by default
+  target_format: png        # Target format when converting
+  naming_style: sequential  # sequential, page_based, source_based
+
+web:
+  strategy: bfs             # bfs, dfs, bestfirst
+  max_depth: 2              # Maximum crawl depth
+  max_pages: 50             # Maximum pages to crawl
+  same_domain: true         # Restrict to same domain
+  include_patterns: []      # URL patterns to include
+  exclude_patterns: []      # URL patterns to exclude
+
+youtube:
+  caption_type: auto        # auto, manual
+  include_playlist: false   # Process entire playlist
+  languages:
+    - en
+
+audio:
+  whisper_model: turbo      # tiny, base, small, medium, large, turbo
+
+ai:
+  describe_images: false    # Generate VLM image descriptions
+  vlm_model: llava          # VLM model for descriptions
+  ollama_host: "http://localhost:11434"
+  cleanup_markdown: false   # Clean up markdown with Claude
+
+output:
+  directory: ./output       # Output directory
+  generate_metadata: false  # Generate JSON metadata files
+  create_img_folder: true   # Create img subfolder
+
+verbose: false

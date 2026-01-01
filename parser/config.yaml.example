@@ -1,0 +1,178 @@
+# Paper PDF Retriever Configuration
+# Copy this file to config.yaml and edit with your settings
+
+# Your identification (required for polite API access)
+user:
+  email: "your.email@university.edu"  # Your email (required for API access)
+  name: ""                      # Your name (optional)
+
+# API Keys (optional but recommended for higher rate limits)
+api_keys:
+  # NCBI API key for PubMed Central - get from https://www.ncbi.nlm.nih.gov/account/settings/
+  ncbi: null
+  # Semantic Scholar API key - get from https://www.semanticscholar.org/product/api
+  semantic_scholar: null
+  # CrossRef Plus API key (if you have institutional access)
+  crossref_plus: null
+
+# Institutional Access (for IEEE, ACM, Elsevier via your university)
+#
+# Two modes available:
+#   1. VPN mode: Set vpn_enabled: true when connected to university VPN
+#   2. EZProxy mode: Set proxy_url, then run 'parser auth' to login
+#
+institutional:
+  enabled: false
+
+  # VPN Mode - set to true when connected to university VPN
+  vpn_enabled: false
+  vpn_script: null              # e.g., "./scripts/vpn-connect.sh"
+  vpn_disconnect_script: null   # e.g., "./scripts/vpn-disconnect.sh"
+
+  # EZProxy Mode - browser-based Shibboleth/SAML login
+  proxy_url: null               # e.g., "https://ezproxy.youruniversity.edu/login?url="
+  cookies_file: ".institutional_cookies.pkl"
+
+  university: ""                # Your university name (for reference)
+
+# Source configuration (lower priority number = tried first)
+# Open Access sources are enabled by default
+# Restricted sources (institutional, scihub, libgen) are disabled by default
+sources:
+  unpaywall:
+    enabled: true
+    priority: 1
+  arxiv:
+    enabled: true
+    priority: 2
+  pmc:
+    enabled: true
+    priority: 3
+  biorxiv:
+    enabled: true
+    priority: 4
+  semantic_scholar:
+    enabled: true
+    priority: 5
+  acl_anthology:
+    enabled: true
+    priority: 6
+  openalex:
+    enabled: true
+    priority: 7
+  frontiers:
+    enabled: true
+    priority: 8
+  institutional:
+    enabled: false              # Enable when using university VPN/EZProxy
+    priority: 9
+  web_search:
+    enabled: false
+    priority: 10
+  scihub:
+    enabled: false              # ⚠️ Legal gray area - use at your own risk
+    priority: 11
+  libgen:
+    enabled: false              # ⚠️ Legal gray area - use at your own risk
+    priority: 12
+
+# Unofficial sources (require explicit opt-in)
+# ⚠️ WARNING: Use at your own risk. May be illegal in your jurisdiction.
+unofficial:
+  disclaimer_accepted: false    # Must set to true to enable scihub/libgen
+  scihub:
+    enabled: false
+    proxy: null                 # SOCKS5 proxy if needed (e.g., "socks5://127.0.0.1:9050")
+  libgen:
+    enabled: false
+    mirror: "li"                # LibGen mirror: "li", "is", "rs", "st"
+
+# Download settings
+download:
+  output_dir: "./downloads"
+  filename_format: "{first_author}_{year}_{title_short}.pdf"
+  max_title_length: 50
+  create_subfolders: false
+  skip_existing: true
+  # Lookup priority for sources that support both title and DOI search
+  # Options: ["title", "doi"] or ["doi", "title"]
+  # Default is title-first as it tends to have better hit rate for some papers
+  lookup_priority:
+    - title
+    - doi
+
+# Metadata Resolution Order
+# Controls which sources are tried first when resolving paper metadata
+# Peer-reviewed sources (CrossRef) are prioritized over preprints (arXiv)
+metadata:
+  # Order of sources for metadata resolution
+  # 1. crossref - peer-reviewed papers (most authoritative)
+  # 2. semantic_scholar - good coverage, supports DOI/arXiv
+  # 3. openalex - broad coverage
+  # 4. arxiv - preprints (fallback)
+  resolution_order:
+    - crossref
+    - semantic_scholar
+    - openalex
+    - arxiv
+  # Title similarity threshold for matching (0.0 to 1.0)
+  # Higher = stricter matching, fewer false positives
+  title_match_threshold: 0.8
+
+# Rate limiting (seconds between requests)
+# Respects API guidelines - do not reduce below these values
+rate_limits:
+  global_delay: 1.0
+  per_source_delays:
+    crossref: 0.5               # CrossRef: be polite
+    unpaywall: 0.1              # Unpaywall: fast
+    arxiv: 3.0                  # arXiv: strict rate limit
+    pmc: 0.34                   # PMC: 3 requests/second max
+    semantic_scholar: 3.0       # S2: strict without API key
+    biorxiv: 1.0                # bioRxiv: moderate
+    scihub: 5.0                 # Sci-Hub: be careful
+    libgen: 3.0                 # LibGen: moderate
+
+# Batch processing settings
+batch:
+  max_concurrent: 3             # Max parallel downloads
+  retry_failed: true            # Retry failed downloads
+  max_retries: 2                # Max retry attempts
+  save_progress: true           # Save progress for resume
+  progress_file: ".retrieval_progress.json"
+
+# =============================================================================
+# AI Agent Settings for parse-refs --agent
+# =============================================================================
+# Enable AI-powered reference extraction using Claude or Gemini
+# Usage: parser parse-refs document.md --agent anthropic
+#        parser parse-refs document.md --agent gemini
+
+agent:
+  # Anthropic Claude Settings
+  # Get API key from: https://console.anthropic.com/
+  anthropic:
+    api_key: null               # Or set ANTHROPIC_API_KEY env var
+    model: "claude-sonnet-4-20250514"
+    # Available models:
+    # - claude-sonnet-4-20250514 (recommended, fast + capable)
+    # - claude-opus-4-20250514 (most capable, slower)
+    # - claude-3-haiku-20240307 (fastest, less capable)
+
+  # Google Gemini Settings
+  # Get API key from: https://aistudio.google.com/apikey
+  gemini:
+    api_key: null               # Or set GOOGLE_API_KEY env var
+    model: "gemini-2.0-flash"
+    # Available models:
+    # - gemini-2.0-flash (recommended, fast + capable)
+    # - gemini-1.5-pro (more capable, slower)
+    # - gemini-1.5-flash (fast, good for simple docs)
+
+  # Default agent when --agent is used without specifying type
+  default: "anthropic"          # "anthropic" or "gemini"
+
+# Logging
+logging:
+  level: "INFO"                 # DEBUG, INFO, WARNING, ERROR
+  file: null                    # Set to a path to log to file (e.g., "parser.log")
