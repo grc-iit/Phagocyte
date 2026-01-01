@@ -1,0 +1,131 @@
+   Building ingestor @ file:///home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor
+      Built ingestor @ file:///home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor
+Uninstalled 1 package in 0.49ms
+Installed 1 package in 0.74ms
+Processing folder: ..[35m/pipeline_output/phase2_parser/step4_acquisition/papers/[0m
+Recursive: [3;92mTrue[0m, Concurrency: [1;36m5[0m
+  [32mOK[0m ..[35m/pipeline_output/phase2_parser/step4_acquisition/papers/[0m[95m10.1109_TPDS.2021.3090322.log[0m -> 
+..[35m/pipeline_output/phase3_ingestor/pdfs/[0m[95m10_1109_TPDS_2021_3090322_log[0m
+  [32mOK[0m ..[35m/pipeline_output/phase2_parser/step4_acquisition/papers/[0m[95m10.1109_IPDPSW59300.2023.00107.log[0m -> 
+..[35m/pipeline_output/phase3_ingestor/pdfs/[0m[95m10_1109_IPDPSW59300_2023_00107_log[0m
+  [32mOK[0m ..[35m/pipeline_output/phase2_parser/step4_acquisition/papers/[0m[95m10.1109_PDSW49588.2019.00006.log[0m -> 
+..[35m/pipeline_output/phase3_ingestor/pdfs/[0m[95m10_1109_PDSW49588_2019_00006_log[0m
+  [32mOK[0m ..[35m/pipeline_output/phase2_parser/step4_acquisition/papers/[0m[95m10.1007_s11390-020-9822-9.log[0m -> 
+..[35m/pipeline_output/phase3_ingestor/pdfs/[0m[95m10_1007_s11390-020-9822-9_log[0m
+  [32mOK[0m ..[35m/pipeline_output/phase2_parser/step4_acquisition/papers/[0m[95m.retrieval_progress.json[0m -> 
+..[35m/pipeline_output/phase3_ingestor/pdfs/[0m[95mretrieval_progress_json[0m
+  [32mOK[0m ..[35m/pipeline_output/phase2_parser/step4_acquisition/papers/[0m[95mTransparent[0m Asynchronous Parallel I_O Using 
+Background Threads.log -> 
+..[35m/pipeline_output/phase3_ingestor/pdfs/[0m[95mTransparent_Asynchronous_Parallel_I_O_Using_Background_Threads_log[0m
+  [32mOK[0m ..[35m/pipeline_output/phase2_parser/step4_acquisition/papers/[0m[95mEfficient[0m Asynchronous I_O with Request 
+Merging.log -> ..[35m/pipeline_output/phase3_ingestor/pdfs/[0m[95mEfficient_Asynchronous_I_O_with_Request_Merging_log[0m
+  [32mOK[0m ..[35m/pipeline_output/phase2_parser/step4_acquisition/papers/failed/[0m[95mTuning[0m HDF5 subfiling performance on 
+parallel file systems.log -> 
+..[35m/pipeline_output/phase3_ingestor/pdfs/[0m[95mTuning_HDF5_subfiling_performance_on_parallel_file_systems_log[0m
+2026-01-01 15:13:29,675 - INFO - detected formats: [<InputFormat.PDF: 'pdf'>]
+2026-01-01 15:13:29,676 - INFO - detected formats: [<InputFormat.PDF: 'pdf'>]
+2026-01-01 15:13:29,676 - INFO - detected formats: [<InputFormat.PDF: 'pdf'>]
+2026-01-01 15:13:29,682 - INFO - detected formats: [<InputFormat.PDF: 'pdf'>]
+2026-01-01 15:13:29,683 - INFO - Going to convert document batch...
+2026-01-01 15:13:29,684 - INFO - Initializing pipeline for StandardPdfPipeline with options hash 160c01fdb2406b1108abfd931a3b27de
+2026-01-01 15:13:29,685 - INFO - Going to convert document batch...
+2026-01-01 15:13:29,690 - INFO - Going to convert document batch...
+2026-01-01 15:13:29,691 - INFO - Loading plugin 'docling_defaults'
+2026-01-01 15:13:29,692 - INFO - Registered picture descriptions: ['vlm', 'api']
+2026-01-01 15:13:29,696 - INFO - Loading plugin 'docling_defaults'
+2026-01-01 15:13:29,697 - INFO - Registered ocr engines: ['auto', 'easyocr', 'ocrmac', 'rapidocr', 'tesserocr', 'tesseract']
+2026-01-01 15:13:29,705 - INFO - Going to convert document batch...
+2026-01-01 15:13:29,781 - INFO - Accelerator device: 'cpu'
+[32m[INFO] 2026-01-01 15:13:29,787 [RapidOCR] base.py:22: Using engine_name: onnxruntime[0m
+[32m[INFO] 2026-01-01 15:13:29,791 [RapidOCR] download_file.py:60: File exists and is valid: /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_det_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:29,791 [RapidOCR] main.py:53: Using /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_det_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:29,830 [RapidOCR] base.py:22: Using engine_name: onnxruntime[0m
+[32m[INFO] 2026-01-01 15:13:29,830 [RapidOCR] download_file.py:60: File exists and is valid: /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_ppocr_mobile_v2.0_cls_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:29,830 [RapidOCR] main.py:53: Using /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_ppocr_mobile_v2.0_cls_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:29,857 [RapidOCR] base.py:22: Using engine_name: onnxruntime[0m
+[32m[INFO] 2026-01-01 15:13:29,863 [RapidOCR] download_file.py:60: File exists and is valid: /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_rec_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:29,863 [RapidOCR] main.py:53: Using /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_rec_infer.onnx[0m
+2026-01-01 15:13:29,914 - INFO - Auto OCR model selected rapidocr with onnxruntime.
+2026-01-01 15:13:29,917 - INFO - Loading plugin 'docling_defaults'
+2026-01-01 15:13:29,918 - INFO - Registered layout engines: ['docling_layout_default', 'docling_experimental_table_crops_layout']
+2026-01-01 15:13:29,921 - INFO - Accelerator device: 'cpu'
+2026-01-01 15:13:30,483 - INFO - Loading plugin 'docling_defaults'
+2026-01-01 15:13:30,484 - INFO - Registered table structure engines: ['docling_tableformer']
+2026-01-01 15:13:30,804 - INFO - Accelerator device: 'cpu'
+2026-01-01 15:13:30,977 - INFO - Accelerator device: 'cpu'
+2026-01-01 15:13:31,547 - INFO - Processing document Tang_2019_Enabling_Transparent_Asynchronous_IO_using_Backgro.pdf
+2026-01-01 15:13:31,548 - INFO - Initializing pipeline for StandardPdfPipeline with options hash 160c01fdb2406b1108abfd931a3b27de
+2026-01-01 15:13:31,548 - INFO - Accelerator device: 'cpu'
+[32m[INFO] 2026-01-01 15:13:31,555 [RapidOCR] base.py:22: Using engine_name: onnxruntime[0m
+[32m[INFO] 2026-01-01 15:13:31,558 [RapidOCR] download_file.py:60: File exists and is valid: /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_det_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:31,558 [RapidOCR] main.py:53: Using /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_det_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:31,597 [RapidOCR] base.py:22: Using engine_name: onnxruntime[0m
+[32m[INFO] 2026-01-01 15:13:31,598 [RapidOCR] download_file.py:60: File exists and is valid: /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_ppocr_mobile_v2.0_cls_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:31,598 [RapidOCR] main.py:53: Using /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_ppocr_mobile_v2.0_cls_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:31,623 [RapidOCR] base.py:22: Using engine_name: onnxruntime[0m
+[32m[INFO] 2026-01-01 15:13:31,630 [RapidOCR] download_file.py:60: File exists and is valid: /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_rec_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:31,630 [RapidOCR] main.py:53: Using /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_rec_infer.onnx[0m
+2026-01-01 15:13:31,681 - INFO - Auto OCR model selected rapidocr with onnxruntime.
+2026-01-01 15:13:31,681 - INFO - Accelerator device: 'cpu'
+2026-01-01 15:13:32,061 - INFO - Accelerator device: 'cpu'
+2026-01-01 15:13:32,404 - INFO - Accelerator device: 'cpu'
+2026-01-01 15:13:33,638 - INFO - Processing document Byna_2020_ExaHDF5_Delivering_Efficient_Parallel_IO_on_Exasca.pdf
+2026-01-01 15:13:33,641 - INFO - Initializing pipeline for StandardPdfPipeline with options hash 160c01fdb2406b1108abfd931a3b27de
+2026-01-01 15:13:33,642 - INFO - Accelerator device: 'cpu'
+[32m[INFO] 2026-01-01 15:13:33,661 [RapidOCR] base.py:22: Using engine_name: onnxruntime[0m
+[32m[INFO] 2026-01-01 15:13:33,673 [RapidOCR] download_file.py:60: File exists and is valid: /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_det_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:33,674 [RapidOCR] main.py:53: Using /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_det_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:33,731 [RapidOCR] base.py:22: Using engine_name: onnxruntime[0m
+[32m[INFO] 2026-01-01 15:13:33,732 [RapidOCR] download_file.py:60: File exists and is valid: /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_ppocr_mobile_v2.0_cls_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:33,732 [RapidOCR] main.py:53: Using /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_ppocr_mobile_v2.0_cls_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:33,754 [RapidOCR] base.py:22: Using engine_name: onnxruntime[0m
+[32m[INFO] 2026-01-01 15:13:33,768 [RapidOCR] download_file.py:60: File exists and is valid: /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_rec_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:33,768 [RapidOCR] main.py:53: Using /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_rec_infer.onnx[0m
+2026-01-01 15:13:33,839 - INFO - Auto OCR model selected rapidocr with onnxruntime.
+2026-01-01 15:13:33,840 - INFO - Accelerator device: 'cpu'
+2026-01-01 15:13:35,055 - INFO - Accelerator device: 'cpu'
+2026-01-01 15:13:36,433 - INFO - Accelerator device: 'cpu'
+2026-01-01 15:13:39,335 - INFO - Processing document Chowdhury_2023_Efficient_Asynchronous_IO_with_Request_Merging.pdf
+2026-01-01 15:13:39,335 - INFO - Initializing pipeline for StandardPdfPipeline with options hash 160c01fdb2406b1108abfd931a3b27de
+2026-01-01 15:13:39,335 - INFO - Accelerator device: 'cpu'
+[32m[INFO] 2026-01-01 15:13:39,346 [RapidOCR] base.py:22: Using engine_name: onnxruntime[0m
+[32m[INFO] 2026-01-01 15:13:39,366 [RapidOCR] download_file.py:60: File exists and is valid: /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_det_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:39,366 [RapidOCR] main.py:53: Using /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_det_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:39,515 [RapidOCR] base.py:22: Using engine_name: onnxruntime[0m
+[32m[INFO] 2026-01-01 15:13:39,526 [RapidOCR] download_file.py:60: File exists and is valid: /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_ppocr_mobile_v2.0_cls_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:39,526 [RapidOCR] main.py:53: Using /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_ppocr_mobile_v2.0_cls_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:39,598 [RapidOCR] base.py:22: Using engine_name: onnxruntime[0m
+[32m[INFO] 2026-01-01 15:13:39,635 [RapidOCR] download_file.py:60: File exists and is valid: /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_rec_infer.onnx[0m
+[32m[INFO] 2026-01-01 15:13:39,635 [RapidOCR] main.py:53: Using /home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte/ingestor/.venv/lib/python3.13/site-packages/rapidocr/models/ch_PP-OCRv4_rec_infer.onnx[0m
+2026-01-01 15:13:39,900 - INFO - Auto OCR model selected rapidocr with onnxruntime.
+2026-01-01 15:13:39,900 - INFO - Accelerator device: 'cpu'
+2026-01-01 15:13:40,889 - INFO - Accelerator device: 'cpu'
+2026-01-01 15:13:43,225 - INFO - Accelerator device: 'cpu'
+2026-01-01 15:13:48,514 - INFO - Processing document Tang_2022_Transparent_Asynchronous_Parallel_IO_Using_Backgro.pdf
+2026-01-01 15:14:01,518 - WARNING - RapidOCR returned empty result!
+[33m[WARNING] 2026-01-01 15:14:02,165 [RapidOCR] main.py:125: The text detection result is empty[0m
+2026-01-01 15:14:02,171 - WARNING - RapidOCR returned empty result!
+2026-01-01 15:14:02,994 - WARNING - RapidOCR returned empty result!
+2026-01-01 15:14:03,855 - WARNING - RapidOCR returned empty result!
+2026-01-01 15:14:09,452 - INFO - Finished converting document Tang_2019_Enabling_Transparent_Asynchronous_IO_using_Backgro.pdf in 39.78 sec.
+  [32mOK[0m 
+..[35m/pipeline_output/phase2_parser/step4_acquisition/papers/[0m[95mTang_2019_Enabling_Transparent_Asynchronous_IO_using_Ba[0m
+[95mckgro.pdf[0m -> 
+..[35m/pipeline_output/phase3_ingestor/pdfs/[0m[95mTang_2019_Enabling_Transparent_Asynchronous_IO_using_Backgro_pdf[0m
+2026-01-01 15:14:22,290 - INFO - Finished converting document Tang_2022_Transparent_Asynchronous_Parallel_IO_Using_Backgro.pdf in 52.62 sec.
+  [32mOK[0m 
+..[35m/pipeline_output/phase2_parser/step4_acquisition/papers/[0m[95mTang_2022_Transparent_Asynchronous_Parallel_IO_Using_Ba[0m
+[95mckgro.pdf[0m -> 
+..[35m/pipeline_output/phase3_ingestor/pdfs/[0m[95mTang_2022_Transparent_Asynchronous_Parallel_IO_Using_Backgro_pdf[0m
+2026-01-01 15:14:24,501 - INFO - Finished converting document Chowdhury_2023_Efficient_Asynchronous_IO_with_Request_Merging.pdf in 54.83 sec.
+  [32mOK[0m 
+..[35m/pipeline_output/phase2_parser/step4_acquisition/papers/[0m[95mChowdhury_2023_Efficient_Asynchronous_IO_with_Request_M[0m
+[95merging.pdf[0m -> 
+..[35m/pipeline_output/phase3_ingestor/pdfs/[0m[95mChowdhury_2023_Efficient_Asynchronous_IO_with_Request_Merging_pdf[0m
+2026-01-01 15:14:33,160 - INFO - Finished converting document Byna_2020_ExaHDF5_Delivering_Efficient_Parallel_IO_on_Exasca.pdf in 63.50 sec.
+  [32mOK[0m 
+..[35m/pipeline_output/phase2_parser/step4_acquisition/papers/[0m[95mByna_2020_ExaHDF5_Delivering_Efficient_Parallel_IO_on_E[0m
+[95mxasca.pdf[0m -> 
+..[35m/pipeline_output/phase3_ingestor/pdfs/[0m[95mByna_2020_ExaHDF5_Delivering_Efficient_Parallel_IO_on_Exasca_pdf[0m
+
+Completed: [1;36m12[0m files, [1;36m0[0m errors
