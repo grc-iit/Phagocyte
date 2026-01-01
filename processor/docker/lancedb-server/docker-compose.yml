@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  lancedb-server:
+    build: .
+    container_name: lancedb-server
+    ports:
+      - "${LANCEDB_PORT:-9834}:${LANCEDB_PORT:-9834}"
+    volumes:
+      # Mount your LanceDB database directory
+      - ${LANCEDB_DATA:-./lancedb}:/data
+    environment:
+      - LANCEDB_PATH=/data
+      - PORT=${LANCEDB_PORT:-9834}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:${LANCEDB_PORT:-9834}/healthz')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+# Usage:
+#   Default (port 9834):     docker-compose up -d
+#   Custom port:             LANCEDB_PORT=8080 docker-compose up -d
+#   Custom data path:        LANCEDB_DATA=/path/to/db docker-compose up -d

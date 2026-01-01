@@ -1,0 +1,86 @@
+# Processor Default Configuration
+
+# Content type detection (directory name -> chunker type)
+content_mapping:
+  codebases: code
+  papers: paper
+  websites: markdown
+  books: paper
+  youtube: markdown
+
+# Chunking settings
+# Note: We use structure-aware chunking (AST for code, headers for markdown)
+# which provides better semantic boundaries than character-based overlap.
+# Chunk sizes define the max content per chunk in tokens.
+chunking:
+  # Code chunking - uses tree-sitter AST parsing (respects function/class boundaries)
+  code_chunk_size: 1024
+
+  # Paper chunking - uses header-aware parsing (respects section boundaries)
+  paper_chunk_size: 2048
+
+  # Website/markdown chunking - uses header-aware parsing
+  markdown_chunk_size: 1024
+
+# Embedding configuration
+embedding:
+  # Backend: ollama (default), transformers
+  # - ollama: Default, uses GGUF models via Ollama server
+  # - transformers: HuggingFace models (requires torch + sentence-transformers)
+  backend: ollama
+
+  # Model profiles (see profiles.py for model details)
+  # Text: low (Qwen3 0.6B), medium (Qwen3 4B), high (Qwen3 8B)
+  text_profile: low
+
+  # Code: low (jina-code 0.5B), high (jina-code 1.5B)
+  code_profile: low
+
+  # Multimodal: low (CLIP-ViT-L-14), high (CLIP-ViT-H-14)
+  multimodal_profile: low
+
+  # Ollama server URL
+  ollama_host: "http://localhost:11434"
+
+  # Transformers-specific settings
+  torch_device: auto    # auto, cuda, cuda:0, cpu
+  torch_dtype: bfloat16 # float32, float16, bfloat16
+  use_flash_attention: true
+
+  # Batch processing
+  batch_size: 32
+  max_concurrent: 4
+
+  # Retry
+  max_retries: 3
+  retry_delay: 1.0
+
+# Database settings
+database:
+  uri: "./lancedb"
+
+  # Table mode:
+  # - separate: text_chunks + code_chunks + image_chunks (different embeddings)
+  # - unified: single chunks table (same embedding for all, uses CLIP)
+  # - both: create all tables
+  table_mode: separate
+
+  # Table names
+  text_table: text_chunks
+  code_table: code_chunks
+  image_table: image_chunks
+  unified_table: chunks
+
+  # Indexing
+  create_vector_index: true
+  create_fts_index: true
+  ivf_partitions: 256
+
+# Processing
+processing:
+  input_dir: "./input"
+  incremental: true
+  state_file: ".processor_state.json"
+  max_concurrent_files: 5
+
+verbose: false

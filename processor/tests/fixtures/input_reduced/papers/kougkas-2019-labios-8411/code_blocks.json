@@ -1,0 +1,8 @@
+[
+  {
+    "text": "#include <tabios.hpp>\n    ...\n    Client client = InitClient(ip, port, connConfig);\n    std::string path = \"pyfs?/data/integers.data\";\n    LabelSrc src = new LabelSrc(path, src_offset, size);\n    LabelType type = SDS_IN_SITU; //complex type\n    LabelFlag flags = CACHE0 | MPI_IO; //keep in cache\n    std::function<int(vector<int>)> fn = FindMedian;\n    Label label = client.CreateLabel(type,src,fn,flags);\n    Status status =client.PublishLabel(label);\n    ...                  //perform other computations\n    client.WaitLabel(&status);\n    int median = std::static_cast<int>(status.data);\n\n                Figure 4: LABICS API example.",
+    "language": "C++",
+    "page": 8,
+    "context": ""
+  }
+]
