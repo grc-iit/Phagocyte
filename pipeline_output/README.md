@@ -9,16 +9,16 @@
 │                           PHAGOCYTE PIPELINE                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐                   │
-│  │  RESEARCHER │────▶│   PARSER    │────▶│  INGESTOR   │                   │
-│  │             │     │             │     │             │                   │
-│  │ • Research  │     │ • Parse refs│     │ • PDF→MD    │                   │
-│  │ • Citations │     │ • Acquire   │     │ • Web→MD    │                   │
-│  │ • Report    │     │ • DOI→BIB   │     │ • Git→MD    │                   │
-│  └─────────────┘     └─────────────┘     └─────────────┘                   │
+│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌───────────┐ │
+│  │  RESEARCHER │────▶│   PARSER    │────▶│  INGESTOR   │────▶│ PROCESSOR │ │
+│  │             │     │             │     │             │     │           │ │
+│  │ • Research  │     │ • Parse refs│     │ • PDF→MD    │     │ • Chunk   │ │
+│  │ • Citations │     │ • Acquire   │     │ • Web→MD    │     │ • Embed   │ │
+│  │ • Report    │     │ • DOI→BIB   │     │ • Git→MD    │     │ • Store   │ │
+│  └─────────────┘     └─────────────┘     └─────────────┘     └───────────┘ │
 │                                                                             │
-│  Input: Topic        Output: Papers      Output: Markdown                   │
-│         + Artifacts          + BibTeX            + Images                   │
+│  Input: Topic        Output: Papers      Output: Markdown   Output: Vector  │
+│         + Artifacts          + BibTeX            + Images          Database │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -45,6 +45,7 @@
 | 2.4 | [parser](phase2_parser/step4_acquisition/README.md) | ⚠️ | ~60s | 5/7 papers downloaded |
 | 2.5 | [parser](phase2_parser/step5_doi2bib/README.md) | ✅ | <1s | 4 BibTeX entries |
 | 3 | [ingestor](phase3_ingestor/README.md) | ✅ | ~210s | 4 PDFs + 1 repo + 40 pages |
+| 4 | [processor](phase4_processor/README.md) | ✅ | ~120s | 1,547 chunks in LanceDB |
 
 ---
 
@@ -137,6 +138,31 @@ ingestor crawl "https://support.hdfgroup.org/documentation/" -o web --max-depth 
 
 ---
 
+## Phase 4: Processor (Processor Module)
+
+### Document Processing
+```bash
+processor process ./input -o ./lancedb --text-profile low --code-profile low --table-mode separate
+```
+**Result**: 53 files processed, 1,547 chunks created
+
+### Database Statistics
+| Table | Rows | Description |
+|-------|------|-------------|
+| text_chunks | 385 | Research, papers, websites |
+| code_chunks | 1162 | HDF5 codebase |
+
+### Sample Searches
+```bash
+# Search text content
+processor search ./lancedb "asynchronous IO HDF5" --table text_chunks -k 5
+
+# Search code content
+processor search ./lancedb "HDF5 dataset API" --table code_chunks -k 5
+```
+
+---
+
 ## Validation Summary
 
 ### ✅ Successful
@@ -220,6 +246,19 @@ pipeline_output/
     │   └── github_com_HDFGroup_hdf5/
     └── web/                           # Web → Markdown
         └── (40 page directories)
+
+└── phase4_processor/                  # PROCESSOR OUTPUT
+    ├── README.md
+    ├── process_execution.log
+    ├── input/                         # Organized input files
+    │   ├── research/                  # Research reports
+    │   ├── papers/                    # Converted papers
+    │   ├── websites/                  # Web content
+    │   └── codebases/                 # GitHub repos
+    └── lancedb/                       # Vector Database
+        ├── text_chunks.lance/         # Text embeddings
+        ├── code_chunks.lance/         # Code embeddings
+        └── _metadata.lance/           # DB metadata
 ```
 
 ---
@@ -300,6 +339,39 @@ uv run ingestor crawl \
   "https://support.hdfgroup.org/documentation/" \
   -o ../pipeline_output/phase3_ingestor/web \
   --max-depth 2 --max-pages 20 -v
+
+# ============================================
+# PHASE 4: PROCESSOR
+# ============================================
+cd ../processor
+
+# Organize input documents
+mkdir -p ../pipeline_output/phase4_processor/input/{research,papers,websites,codebases}
+cp ../pipeline_output/phase1_research/research/*.md ../pipeline_output/phase4_processor/input/research/
+cp ../pipeline_output/phase3_ingestor/pdfs/*/*.md ../pipeline_output/phase4_processor/input/papers/
+cp ../pipeline_output/phase3_ingestor/web/*/*.md ../pipeline_output/phase4_processor/input/websites/
+cp -r ../pipeline_output/phase3_ingestor/github/* ../pipeline_output/phase4_processor/input/codebases/
+
+# Check Ollama is running
+uv run processor check
+
+# Process documents into vector database
+uv run processor process \
+  ../pipeline_output/phase4_processor/input \
+  -o ../pipeline_output/phase4_processor/lancedb \
+  --text-profile low \
+  --code-profile low \
+  --table-mode separate \
+  --full
+
+# View database stats
+uv run processor stats ../pipeline_output/phase4_processor/lancedb
+
+# Test search
+uv run processor search \
+  ../pipeline_output/phase4_processor/lancedb \
+  "asynchronous IO HDF5" \
+  --table text_chunks -k 5
 ```
 
 ---

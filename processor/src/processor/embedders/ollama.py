@@ -39,29 +39,43 @@ class OllamaEmbedder(BaseEmbedder):
             self._client = httpx.AsyncClient(timeout=self.timeout)
         return self._client
 
-    async def embed(self, text: str) -> list[float]:
+    async def embed(self, text: str, max_retries: int = 3) -> list[float]:
         """Generate embedding for single text.
 
         Args:
             text: Text to embed
+            max_retries: Number of retry attempts on failure
 
         Returns:
             Embedding vector as list of floats
         """
         client = self._get_client()
-        response = await client.post(
-            f"{self.host}/api/embeddings",
-            json={"model": self.model_name, "prompt": text},
-        )
-        response.raise_for_status()
-        data = response.json()
-        embedding = data["embedding"]
+        
+        # Truncate very long texts to avoid issues
+        max_chars = 8000  # ~2000 tokens
+        if len(text) > max_chars:
+            text = text[:max_chars]
+        
+        for attempt in range(max_retries):
+            try:
+                response = await client.post(
+                    f"{self.host}/api/embeddings",
+                    json={"model": self.model_name, "prompt": text},
+                )
+                response.raise_for_status()
+                data = response.json()
+                embedding = data["embedding"]
 
-        # Update dimensions from actual response
-        if self.dimensions == 0:
-            self.dimensions = len(embedding)
+                # Update dimensions from actual response
+                if self.dimensions == 0:
+                    self.dimensions = len(embedding)
 
-        return embedding
+                return embedding
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(1.0 * (attempt + 1))
+                else:
+                    raise
 
     async def embed_batch(
         self,
@@ -71,24 +85,23 @@ class OllamaEmbedder(BaseEmbedder):
         """Generate embeddings for multiple texts.
 
         Ollama's API doesn't support batch embedding, so we process
-        texts concurrently in batches for efficiency.
+        texts sequentially to avoid overwhelming the server.
 
         Args:
             texts: List of texts to embed
-            batch_size: Number of concurrent requests
+            batch_size: Number of texts per batch (processed sequentially within)
 
         Returns:
             List of embedding vectors
         """
         embeddings: list[list[float]] = []
 
-        for i in range(0, len(texts), batch_size):
-            batch = texts[i : i + batch_size]
-            # Process batch concurrently
-            batch_embeddings = await asyncio.gather(
-                *[self.embed(text) for text in batch]
-            )
-            embeddings.extend(batch_embeddings)
+        for i, text in enumerate(texts):
+            embedding = await self.embed(text)
+            embeddings.append(embedding)
+            # Add small delay to prevent server overload
+            if (i + 1) % 10 == 0:
+                await asyncio.sleep(0.1)
 
         return embeddings
 

@@ -53,7 +53,7 @@ lancedb/
 test_lancedb/
 test_unified/
 export_test/
-imported_db/\
+imported_db/
 *.lance/
 ./ingestor/
 

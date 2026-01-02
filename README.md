@@ -1,20 +1,20 @@
 # Phagocyte
 
-> End-to-end pipeline: Research → Parse References → Acquire Documents → Ingest to Knowledge Store
+> End-to-end pipeline: Research → Parse References → Acquire Documents → Ingest → RAG Vector Store
 
-An automated workflow that conducts AI-powered research, extracts and acquires academic papers, and converts them into structured markdown for knowledge management.
+An automated workflow that conducts AI-powered research, extracts and acquires academic papers, converts them into structured markdown, and creates a searchable vector database for RAG applications.
 
 ---
 
 ## Pipeline Architecture
 
 ```
-┌──────────────┐      ┌──────────────┐      ┌──────────────┐
-│  RESEARCHER  │─────▶│    PARSER    │─────▶│   INGESTOR   │
-│              │      │              │      │              │
-│  AI Research │      │  Extract     │      │  Convert to  │
-│  + Citations │      │  + Acquire   │      │  Markdown    │
-└──────────────┘      └──────────────┘      └──────────────┘
+┌──────────────┐      ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
+│  RESEARCHER  │─────▶│    PARSER    │─────▶│   INGESTOR   │─────▶│  PROCESSOR   │
+│              │      │              │      │              │      │              │
+│  AI Research │      │  Extract     │      │  Convert to  │      │  Chunk/Embed │
+│  + Citations │      │  + Acquire   │      │  Markdown    │      │  LanceDB     │
+└──────────────┘      └──────────────┘      └──────────────┘      └──────────────┘
 ```
 
 ---
@@ -26,6 +26,7 @@ An automated workflow that conducts AI-powered research, extracts and acquires a
 | **[researcher/](researcher/)** | AI-powered deep research | Gemini Deep Research, citation extraction |
 | **[parser/](parser/)** | Reference extraction & acquisition | Regex + AI parsing, multi-source downloads, DOI→BibTeX |
 | **[ingestor/](ingestor/)** | Document → Markdown conversion | PDF, Web, GitHub, YouTube, Audio support |
+| **[processor/](processor/)** | RAG document processing | AST-aware chunking, embeddings, LanceDB vector store |
 
 ---
 
@@ -42,8 +43,13 @@ parser parse-refs research_report.md --export-batch
 parser batch batch.json -o papers/
 
 # 3. Convert to markdown
-cd ../ingestor && uv sync
+cd ../ingestor && uv sync --extra all-formats
 ingestor batch papers/ -o output/
+
+# 4. Create searchable vector database
+cd ../processor && uv sync
+processor process output/ -o ./lancedb --text-profile low
+processor search ./lancedb "your query" -k 5
 ```
 
 ---
@@ -58,11 +64,13 @@ cd Phagocyte
 cd researcher && uv sync && cd ..
 cd parser && uv sync && cd ..
 cd ingestor && uv sync --extra all-formats && cd ..
+cd processor && uv sync && cd ..
 ```
 
 ### Requirements
 - Python 3.11+
 - [uv](https://github.com/astral-sh/uv) package manager
+- [Ollama](https://ollama.ai/) for embeddings (processor)
 - API Keys: `GOOGLE_API_KEY` (researcher), `ANTHROPIC_API_KEY` (optional)
 
 ---
@@ -77,6 +85,7 @@ See [pipeline_output/](pipeline_output/) for a complete test run on **HDF5 file 
 | Parse | 46 references extracted |
 | Acquire | 5 papers downloaded |
 | Ingest | 4 PDFs + GitHub repo + 40 web pages → Markdown |
+| Process | 1,547 chunks in LanceDB vector store |
 
 ---
 
@@ -85,7 +94,8 @@ See [pipeline_output/](pipeline_output/) for a complete test run on **HDF5 file 
 - [researcher/README.md](researcher/README.md) - Research module docs
 - [parser/README.md](parser/README.md) - Parser module docs  
 - [ingestor/README.md](ingestor/README.md) - Ingestor module docs
-- [pipeline_output/STATUS.md](pipeline_output/STATUS.md) - Test run status report
+- [processor/README.md](processor/README.md) - Processor module docs
+- [pipeline_output/README.md](pipeline_output/README.md) - Complete pipeline test run
 
 ---
 
