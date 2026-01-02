@@ -99,6 +99,22 @@ See [pipeline_output/](pipeline_output/) for a complete test run on **HDF5 file 
 
 ---
 
+## MCP Servers
+
+MCP servers for AI agent integration (Claude, Cursor, VS Code Copilot, etc.):
+
+```bash
+uv run researcher-mcp  # Deep research
+uv run parser-mcp      # Paper acquisition
+uv run ingestor-mcp    # Document conversion
+uv run processor-mcp   # Embedding pipeline
+uv run rag-mcp         # Semantic search
+```
+
+See: [researcher-mcp](researcher/mcp/researcher_mcp/README.md) | [parser-mcp](parser/mcp/parser_mcp/README.md) | [ingestor-mcp](ingestor/mcp/ingestor_mcp/README.md) | [processor-mcp](processor/mcp/processor_mcp/README.md) | [rag-mcp](processor/mcp/rag_mcp/README.md)
+
+---
+
 ## License
 
 MIT
