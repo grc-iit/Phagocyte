@@ -31,6 +31,7 @@ def run_module(module: str, args: list[str]) -> int:
 # Main CLI
 # =============================================================================
 
+
 @click.group()
 @click.version_option(version="0.1.0")
 def cli():
@@ -38,7 +39,7 @@ def cli():
 
     \b
     Pipeline: Research → Parse → Ingest → Process → Search
-    
+
     \b
     Commands:
       research  - AI-powered deep research (Gemini)
@@ -53,22 +54,35 @@ def cli():
 # RESEARCH Command (direct command, not a group)
 # =============================================================================
 
+
 @cli.command()
 @click.argument("topic")
 @click.option("-o", "--output", help="Output directory")
-@click.option("-m", "--mode", type=click.Choice(["undirected", "directed", "no-research"]), default="undirected", help="Research mode")
-@click.option("-a", "--artifact", "artifacts", multiple=True, help="Artifact URLs (can specify multiple)")
+@click.option(
+    "-m",
+    "--mode",
+    type=click.Choice(["undirected", "directed", "no-research"]),
+    default="undirected",
+    help="Research mode",
+)
+@click.option(
+    "-a",
+    "--artifact",
+    "artifacts",
+    multiple=True,
+    help="Artifact URLs (can specify multiple)",
+)
 @click.option("--api-key", help="Gemini API key")
 @click.option("-v", "--verbose", is_flag=True, help="Verbose output")
 def research(topic, output, mode, artifacts, api_key, verbose):
     """AI-powered deep research using Gemini.
-    
+
     \b
     Modes:
       undirected  - Web-first discovery (default)
       directed    - Use artifacts first, fill gaps with web
       no-research - Analyze only provided artifacts
-    
+
     \b
     Examples:
       phagocyte research "HDF5 best practices"
@@ -90,10 +104,11 @@ def research(topic, output, mode, artifacts, api_key, verbose):
 # PARSE Command Group (10 commands)
 # =============================================================================
 
+
 @cli.group()
 def parse():
     """Reference extraction & paper acquisition.
-    
+
     \b
     Commands:
       refs      - Parse references from a document
@@ -113,13 +128,18 @@ def parse():
 @parse.command("refs")
 @click.argument("input_file")
 @click.option("-o", "--output", help="Output directory")
-@click.option("--agent", type=click.Choice(["none", "claude", "gemini"]), default="none", help="AI agent for parsing")
+@click.option(
+    "--agent",
+    type=click.Choice(["none", "claude", "gemini"]),
+    default="none",
+    help="AI agent for parsing",
+)
 @click.option("--export-batch", is_flag=True, help="Export batch.json for acquisition")
 @click.option("--export-dois", is_flag=True, help="Export dois.txt for doi2bib")
 @click.option("--compare", is_flag=True, help="Compare regex vs agent parsing")
 def parse_refs(input_file, output, agent, export_batch, export_dois, compare):
     """Parse references from a research document.
-    
+
     \b
     Examples:
       phagocyte parse refs research_report.md --export-batch
@@ -146,7 +166,7 @@ def parse_refs(input_file, output, agent, export_batch, export_dois, compare):
 @click.option("-v", "--verbose", is_flag=True, help="Verbose output")
 def parse_retrieve(identifier, output, email, verbose):
     """Download a single paper by DOI, title, or arXiv ID.
-    
+
     \b
     Examples:
       phagocyte parse retrieve "10.1038/nature12373"
@@ -169,10 +189,10 @@ def parse_retrieve(identifier, output, email, verbose):
 @click.option("-v", "--verbose", is_flag=True, help="Verbose output")
 def parse_batch(input_file, output, concurrent, email, verbose):
     """Batch download papers from a file.
-    
+
     \b
     Supports: JSON, CSV, TXT (one ID per line)
-    
+
     \b
     Examples:
       phagocyte parse batch batch.json -o ./papers
@@ -190,10 +210,15 @@ def parse_batch(input_file, output, concurrent, email, verbose):
 @click.argument("identifier", required=False)
 @click.option("-i", "--input", "input_file", help="File with DOIs")
 @click.option("-o", "--output", help="Output file")
-@click.option("--format", "fmt", type=click.Choice(["bibtex", "json", "markdown"]), default="bibtex")
+@click.option(
+    "--format",
+    "fmt",
+    type=click.Choice(["bibtex", "json", "markdown"]),
+    default="bibtex",
+)
 def parse_doi2bib(identifier, input_file, output, fmt):
     """Convert DOI or arXiv ID to BibTeX/JSON/Markdown.
-    
+
     \b
     Examples:
       phagocyte parse doi2bib 10.1038/nature12373
@@ -218,7 +243,7 @@ def parse_doi2bib(identifier, input_file, output, fmt):
 @click.option("-v", "--verbose", is_flag=True, help="Verbose output")
 def parse_verify(input_path, output, email, dry_run, verbose):
     """Verify BibTeX citations against CrossRef and arXiv.
-    
+
     \b
     Examples:
       phagocyte parse verify references.bib -o ./verified
@@ -238,19 +263,34 @@ def parse_verify(input_path, output, email, dry_run, verbose):
 
 @parse.command("citations")
 @click.argument("identifier")
-@click.option("--direction", type=click.Choice(["citations", "references", "both"]), default="both")
+@click.option(
+    "--direction",
+    type=click.Choice(["citations", "references", "both"]),
+    default="both",
+)
 @click.option("-n", "--limit", default=50, help="Max items to retrieve")
 @click.option("-o", "--output", help="Output file")
-@click.option("--format", "fmt", type=click.Choice(["json", "text", "bibtex"]), default="text")
+@click.option(
+    "--format", "fmt", type=click.Choice(["json", "text", "bibtex"]), default="text"
+)
 def parse_citations(identifier, direction, limit, output, fmt):
     """Get citation graph for a paper.
-    
+
     \b
     Examples:
       phagocyte parse citations "10.1038/nature12373" --direction both
       phagocyte parse citations "arXiv:2005.11401" -n 100 --format bibtex
     """
-    args = ["citations", identifier, "--direction", direction, "-n", str(limit), "--format", fmt]
+    args = [
+        "citations",
+        identifier,
+        "--direction",
+        direction,
+        "-n",
+        str(limit),
+        "--format",
+        fmt,
+    ]
     if output:
         args.extend(["-o", output])
     sys.exit(run_module("parser", args))
@@ -265,7 +305,7 @@ def parse_sources():
 @parse.command("auth")
 def parse_auth():
     """Authenticate with your institution for access to IEEE, ACM, etc.
-    
+
     \b
     Two modes:
       1. VPN Mode: Configure vpn_enabled: true and vpn_script
@@ -277,7 +317,7 @@ def parse_auth():
 @parse.command("init")
 def parse_init():
     """Initialize a configuration file.
-    
+
     Creates a config.yaml file with default settings.
     """
     sys.exit(run_module("parser", ["init"]))
@@ -305,10 +345,11 @@ def parse_config_pull():
 # INGEST Command Group (5 commands)
 # =============================================================================
 
+
 @cli.group()
 def ingest():
     """Document/media to markdown conversion.
-    
+
     \b
     Commands:
       file      - Ingest a single file or URL
@@ -328,10 +369,10 @@ def ingest():
 @click.option("-v", "--verbose", is_flag=True, help="Verbose output")
 def ingest_file(source, output, describe_images, img_format, verbose):
     """Ingest a single file or URL to markdown.
-    
+
     \b
     Supports: PDF, DOCX, PPTX, EPUB, HTML, YouTube, etc.
-    
+
     \b
     Examples:
       phagocyte ingest file paper.pdf -o ./output
@@ -355,7 +396,7 @@ def ingest_file(source, output, describe_images, img_format, verbose):
 @click.option("-v", "--verbose", is_flag=True, help="Verbose output")
 def ingest_batch(input_dir, output, recursive, concurrency, describe_images, verbose):
     """Process all supported files in a folder.
-    
+
     \b
     Examples:
       phagocyte ingest batch ./papers -o ./markdown
@@ -376,23 +417,36 @@ def ingest_batch(input_dir, output, recursive, concurrency, describe_images, ver
 @click.option("-o", "--output", default="./output", help="Output directory")
 @click.option("--max-pages", default=50, help="Maximum pages to crawl")
 @click.option("--max-depth", default=2, help="Maximum crawl depth")
-@click.option("--strategy", type=click.Choice(["bfs", "dfs", "bestfirst"]), default="bfs")
+@click.option(
+    "--strategy", type=click.Choice(["bfs", "dfs", "bestfirst"]), default="bfs"
+)
 @click.option("-v", "--verbose", is_flag=True, help="Verbose output")
 def ingest_crawl(url, output, max_pages, max_depth, strategy, verbose):
     """Deep crawl a website and convert to markdown.
-    
+
     \b
     Strategies:
       bfs       - Breadth-first (level by level)
       dfs       - Depth-first (follow links deep)
       bestfirst - Prioritize content-rich pages
-    
+
     \b
     Examples:
       phagocyte ingest crawl https://docs.example.com -o ./docs
       phagocyte ingest crawl https://site.com --max-pages 100 --max-depth 3
     """
-    args = ["crawl", url, "-o", output, "--max-pages", str(max_pages), "--max-depth", str(max_depth), "--strategy", strategy]
+    args = [
+        "crawl",
+        url,
+        "-o",
+        output,
+        "--max-pages",
+        str(max_pages),
+        "--max-depth",
+        str(max_depth),
+        "--strategy",
+        strategy,
+    ]
     if verbose:
         args.append("-v")
     sys.exit(run_module("ingestor", args))
@@ -407,7 +461,7 @@ def ingest_crawl(url, output, max_pages, max_depth, strategy, verbose):
 @click.option("-v", "--verbose", is_flag=True, help="Verbose output")
 def ingest_clone(repo, output, branch, shallow, max_files, verbose):
     """Clone and ingest a git repository.
-    
+
     \b
     Examples:
       phagocyte ingest clone https://github.com/user/repo
@@ -430,7 +484,7 @@ def ingest_clone(repo, output, branch, shallow, max_files, verbose):
 @click.option("-v", "--verbose", is_flag=True, help="Verbose output")
 def ingest_describe(input_path, model, output, verbose):
     """Generate VLM descriptions for images.
-    
+
     \b
     Examples:
       phagocyte ingest describe ./images/
@@ -448,10 +502,11 @@ def ingest_describe(input_path, model, output, verbose):
 # PROCESS Command Group (11 commands)
 # =============================================================================
 
+
 @cli.group()
 def process():
     """Chunking, embedding, and LanceDB vector store.
-    
+
     \b
     Commands:
       run       - Process files into vector database
@@ -472,21 +527,57 @@ def process():
 @process.command("run")
 @click.argument("input_path")
 @click.option("-o", "--output", default="./lancedb", help="LanceDB output path")
-@click.option("--text-profile", type=click.Choice(["low", "medium", "high"]), default="low", help="Text embedding quality")
-@click.option("--code-profile", type=click.Choice(["low", "high"]), default="low", help="Code embedding quality")
-@click.option("--table-mode", type=click.Choice(["separate", "unified", "both"]), default="separate")
+@click.option(
+    "--text-profile",
+    type=click.Choice(["low", "medium", "high"]),
+    default="low",
+    help="Text embedding quality",
+)
+@click.option(
+    "--code-profile",
+    type=click.Choice(["low", "high"]),
+    default="low",
+    help="Code embedding quality",
+)
+@click.option(
+    "--table-mode",
+    type=click.Choice(["separate", "unified", "both"]),
+    default="separate",
+)
 @click.option("--incremental", is_flag=True, help="Skip unchanged files")
 @click.option("--batch-size", default=32, help="Embedding batch size")
 @click.option("-v", "--verbose", is_flag=True, help="Verbose output")
-def process_run(input_path, output, text_profile, code_profile, table_mode, incremental, batch_size, verbose):
+def process_run(
+    input_path,
+    output,
+    text_profile,
+    code_profile,
+    table_mode,
+    incremental,
+    batch_size,
+    verbose,
+):
     """Process files through chunking, embedding, and loading into LanceDB.
-    
+
     \b
     Examples:
       phagocyte process run ./markdown -o ./lancedb
       phagocyte process run ./code --text-profile medium --incremental
     """
-    args = ["process", input_path, "-o", output, "--text-profile", text_profile, "--code-profile", code_profile, "--table-mode", table_mode, "--batch-size", str(batch_size)]
+    args = [
+        "process",
+        input_path,
+        "-o",
+        output,
+        "--text-profile",
+        text_profile,
+        "--code-profile",
+        code_profile,
+        "--table-mode",
+        table_mode,
+        "--batch-size",
+        str(batch_size),
+    ]
     if incremental:
         args.append("--incremental")
     if verbose:
@@ -498,12 +589,16 @@ def process_run(input_path, output, text_profile, code_profile, table_mode, incr
 @click.argument("db_path")
 @click.argument("query")
 @click.option("-k", "--limit", default=5, help="Number of results")
-@click.option("--table", type=click.Choice(["text_chunks", "code_chunks", "chunks"]), default="text_chunks")
+@click.option(
+    "--table",
+    type=click.Choice(["text_chunks", "code_chunks", "chunks"]),
+    default="text_chunks",
+)
 @click.option("--hybrid", is_flag=True, help="Use hybrid search (vector + BM25)")
 @click.option("--rerank", is_flag=True, help="Rerank results with cross-encoder")
 def process_search(db_path, query, limit, table, hybrid, rerank):
     """Search the vector database.
-    
+
     \b
     Examples:
       phagocyte process search ./lancedb "chunking strategies"
@@ -522,7 +617,7 @@ def process_search(db_path, query, limit, table, hybrid, rerank):
 @click.option("--table", help="Specific table to inspect")
 def process_stats(db_path, table):
     """Show database statistics.
-    
+
     \b
     Examples:
       phagocyte process stats ./lancedb
@@ -535,10 +630,12 @@ def process_stats(db_path, table):
 
 
 @process.command("setup")
-@click.option("--minimal/--full", default=True, help="Download minimal or full model set")
+@click.option(
+    "--minimal/--full", default=True, help="Download minimal or full model set"
+)
 def process_setup(minimal):
     """Download required embedding models via Ollama.
-    
+
     \b
     Minimal: qwen3-embedding:0.6b (text only)
     Full: Also includes jina-code models
@@ -562,7 +659,7 @@ def process_check():
 @click.option("--include-vectors", is_flag=True, help="Include vectors in CSV export")
 def process_export(db_path, output_path, fmt, include_vectors):
     """Export database to portable format.
-    
+
     \b
     Examples:
       phagocyte process export ./lancedb ./backup
@@ -579,7 +676,7 @@ def process_export(db_path, output_path, fmt, include_vectors):
 @click.argument("output_path")
 def process_import(export_path, output_path):
     """Import database from exported Lance format.
-    
+
     \b
     Examples:
       phagocyte process import ./backup ./lancedb
@@ -609,7 +706,7 @@ def process_deploy(db_path, port):
 @click.option("-d", "--detach", is_flag=True, help="Run in background (detached mode)")
 def process_server(db_path, port, build, detach):
     """Deploy LanceDB as a REST API server via Docker.
-    
+
     \b
     API Endpoints:
       GET  /tables                       - List all tables
@@ -620,7 +717,7 @@ def process_server(db_path, port, build, detach):
       POST /tables/{name}/search/hybrid  - Hybrid search (vector + FTS)
       POST /tables/{name}/search/text    - Full-text search
       GET  /metadata                     - Database metadata
-    
+
     \b
     Examples:
       phagocyte process server ./lancedb --port 8000
@@ -638,13 +735,15 @@ def process_server(db_path, port, build, detach):
 @click.option("--input", "input_path", help="Input directory for test data")
 @click.option("-o", "--output", help="Test database output path")
 @click.option("--cleanup", is_flag=True, help="Remove test database after validation")
-@click.option("--skip-process", is_flag=True, help="Skip processing, just validate existing db")
+@click.option(
+    "--skip-process", is_flag=True, help="Skip processing, just validate existing db"
+)
 def process_test_e2e(input_path, output, cleanup, skip_process):
     """Run end-to-end validation test.
-    
+
     \b
     Processes sample data, validates output, and runs test searches.
-    
+
     \b
     Examples:
       phagocyte process test-e2e                      # Use input_reduced/

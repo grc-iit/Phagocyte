@@ -9,6 +9,7 @@ from pathlib import Path
 from click.testing import CliRunner
 
 import sys
+
 sys.path.insert(0, str(__file__).rsplit("/tests", 1)[0] + "/src")
 
 from cli import cli
@@ -20,13 +21,13 @@ class TestModuleIntegration:
 
     def test_parse_sources(self, runner: CliRunner) -> None:
         """Test parse sources command runs."""
-        result = runner.invoke(cli, ["parse", "sources"])
+        runner.invoke(cli, ["parse", "sources"])
         # Just verify it doesn't crash
         # Exit code may vary depending on module status
 
     def test_process_check(self, runner: CliRunner) -> None:
         """Test process check command runs."""
-        result = runner.invoke(cli, ["process", "check"])
+        runner.invoke(cli, ["process", "check"])
         # Just verify it doesn't crash
 
 

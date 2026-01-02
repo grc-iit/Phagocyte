@@ -60,6 +60,7 @@ class Calculator:
 # Markers Configuration
 # ============================================================================
 
+
 def pytest_addoption(parser: pytest.Parser) -> None:
     """Add custom command line options."""
     parser.addoption(
