@@ -1,6 +1,12 @@
-# Phagocyte
+<p align="center">
+  <img src="img/phagocyte_logo.png" alt="Phagocyte Logo" width="200"/>
+</p>
 
-> End-to-end pipeline: Research → Parse References → Acquire Documents → Ingest → RAG Vector Store
+<h1 align="center">Phagocyte</h1>
+
+<p align="center">
+  <em>End-to-end pipeline: Research → Parse References → Acquire Documents → Ingest → RAG Vector Store</em>
+</p>
 
 An automated workflow that conducts AI-powered research, extracts and acquires academic papers, converts them into structured markdown, and creates a searchable vector database for RAG applications.
 
@@ -8,14 +14,9 @@ An automated workflow that conducts AI-powered research, extracts and acquires a
 
 ## Pipeline Architecture
 
-```
-┌──────────────┐      ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
-│  RESEARCHER  │─────▶│    PARSER    │─────▶│   INGESTOR   │─────▶│  PROCESSOR   │
-│              │      │              │      │              │      │              │
-│  AI Research │      │  Extract     │      │  Convert to  │      │  Chunk/Embed │
-│  + Citations │      │  + Acquire   │      │  Markdown    │      │  LanceDB     │
-└──────────────┘      └──────────────┘      └──────────────┘      └──────────────┘
-```
+<p align="center">
+  <img src="img/architecture.png" alt="Phagocyte Architecture" width="800"/>
+</p>
 
 ---
 
