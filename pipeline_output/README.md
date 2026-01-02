@@ -152,13 +152,27 @@ processor process ./input -o ./lancedb --text-profile low --code-profile low --t
 | text_chunks | 385 | Research, papers, websites |
 | code_chunks | 1162 | HDF5 codebase |
 
-### Sample Searches
-```bash
-# Search text content
-processor search ./lancedb "asynchronous IO HDF5" --table text_chunks -k 5
+### Sample Search Results
 
-# Search code content
-processor search ./lancedb "HDF5 dataset API" --table code_chunks -k 5
+| Query | Best Match | Distance | Source |
+|-------|------------|----------|--------|
+| "asynchronous IO HDF5" | HDF5 Library and Tools 2.0.0 | 0.42 | websites |
+| "virtual dataset VDS" | VDS allows dataset composition... | 0.61 | research |
+| "SWMR single writer multiple reader" | SWMR enables concurrent read/write... | 0.59 | research |
+| "background thread asynchronous write" | Transparent Async Parallel I/O... | 0.55 | papers |
+| "parallel MPI IO collective" | ExaHDF5: Delivering Efficient... | 0.67 | papers |
+| "H5Fcreate H5Dwrite" (code) | dcpl_id = H5I_INVALID_HID()... | 22510 | codebases |
+
+### Search Commands
+```bash
+# Text search
+processor search ./lancedb "SWMR single writer" --table text_chunks -k 5
+
+# Code search  
+processor search ./lancedb "H5Fcreate" --table code_chunks -k 5
+
+# Hybrid search (vector + BM25)
+processor search ./lancedb "parallel IO" --table text_chunks --hybrid
 ```
 
 ---
@@ -179,6 +193,8 @@ processor search ./lancedb "HDF5 dataset API" --table code_chunks -k 5
 | PDF ingestion | 4/4 papers converted |
 | GitHub ingestion | Repository extracted |
 | Web crawling | 37/40 pages successful |
+| RAG processing | 1,547 chunks embedded |
+| Vector search | 6/6 queries return relevant results |
 
 ### ⚠️ Issues Encountered
 
@@ -189,6 +205,7 @@ processor search ./lancedb "HDF5 dataset API" --table code_chunks -k 5
 | 2.4 | Sci-Hub used | ⚠️ Warning | 2 papers retrieved via gray-area source |
 | 3 | Web timeouts | ⚠️ Warning | 3 pages timed out (forum, main site) |
 | 3 | OCR warnings | ℹ️ Info | Empty OCR results for text-based PDFs (normal) |
+| 4 | Chunk truncation | ℹ️ Info | 1 oversized chunk truncated to 8000 chars |
 
 ---
 

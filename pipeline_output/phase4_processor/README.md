@@ -61,7 +61,7 @@ cd processor && uv run processor process ../pipeline_output/phase4_processor/inp
 
 ## Sample Search Queries
 
-### Query 1: "asynchronous IO HDF5"
+### Query 1: "asynchronous IO HDF5" (Text Search)
 
 ```
 Result 1 (distance: 0.4159)
@@ -77,17 +77,75 @@ Result 3 (distance: 0.4486)
   Content: ExaHDF5: Delivering Efficient Parallel I/O on Exascale Computing Systems
 ```
 
-### Query 2: "parallel file system IO performance"
+### Query 2: "virtual dataset VDS" (Text Search)
 
 ```
-Result 1 (distance: 0.4624)
-  Source: papers/Byna_2020_ExaHDF5_Delivering_Efficient_Parallel_IO_on_Exasca_pdf.md
-  
-Result 2 (distance: 0.6093)  
-  Source: papers/Tang_2022_Transparent_Asynchronous_Parallel_IO_Using_Backgro_pdf.md
-
-Result 3 (distance: 0.6207)
+Result 1 (distance: 0.6135)
   Source: research/research_report.md
+  Content: VDS allows a dataset to be composed of data stored in other "source" datasets,
+           potentially across multiple files...
+
+Result 2 (distance: 0.7771)
+  Source: websites/www_hdfgroup_org_highly-scalable-data-service-hsds.md
+  Content: HSDS Azure VM - A VM zero-touch appliance for Azure...
+```
+
+### Query 3: "SWMR single writer multiple reader" (Text Search)
+
+```
+Result 1 (distance: 0.5910)
+  Source: research/research_report.md
+  Content: SWMR enables a single process to write to an HDF5 file while multiple other
+           processes concurrently read it, without locks or corruption...
+
+Result 2 (distance: 0.8686)
+  Source: papers/Byna_2020_ExaHDF5_Delivering_Efficient_Parallel_IO_on_Exasca_pdf.md
+  Content: Full SWMR evaluation with MPI-based SWMR-like functionality with locks...
+```
+
+### Query 4: "background thread asynchronous write" (Text Search)
+
+```
+Result 1 (distance: 0.5486)
+  Source: papers/Tang_2022_Transparent_Asynchronous_Parallel_IO_Using_Backgro_pdf.md
+  Content: Transparent Asynchronous Parallel I/O using Background Threads - Houjun Tang...
+
+Result 2 (distance: 0.6851)
+  Source: papers/Chowdhury_2023_Efficient_Asynchronous_IO_with_Request_Merging_pdf.md
+  Content: Efficient Asynchronous I/O with Request Merging
+
+Result 3 (distance: 0.7008)
+  Source: papers/Tang_2022_Transparent_Asynchronous_Parallel_IO_Using_Backgro_pdf.md
+  Content: Index Terms - Asynchronous I/O, parallel I/O, background threads
+```
+
+### Query 5: "parallel MPI IO collective" (Text Search)
+
+```
+Result 1 (distance: 0.6709)
+  Source: papers/Byna_2020_ExaHDF5_Delivering_Efficient_Parallel_IO_on_Exasca_pdf.md
+  Content: ExaHDF5: Delivering Efficient Parallel I/O on Exascale Computing Systems
+
+Result 2 (distance: 0.6976)
+  Source: research/research_report.md
+  Content: Parallel HDF5 (PHDF5) relies on MPI-IO. Use collective operations 
+           (H5Pset_dxpl_mpio) to allow the MPI library to coalesce...
+```
+
+### Query 6: "H5Fcreate H5Dwrite" (Code Search)
+
+```
+Result 1 (distance: 22510.22)
+  Source: codebases/github_com_HDFGroup_hdf5/github_com_HDFGroup_hdf5.md
+  Content: dcpl_id = H5I_INVALID_HID(); long[] dims = {DIM_X, DIM_Y}...
+
+Result 2 (distance: 23539.75)
+  Source: codebases/github_com_HDFGroup_hdf5/github_com_HDFGroup_hdf5.md
+  Content: H5File *file = new H5File(FILE_NAME, H5F_ACC_TRUNC)...
+
+Result 3 (distance: 24653.93)
+  Source: codebases/github_com_HDFGroup_hdf5/github_com_HDFGroup_hdf5.md
+  Content: Write the data to the dataset - Flatten 2D array for FFM...
 ```
 
 ## Output Structure
