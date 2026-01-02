@@ -562,9 +562,9 @@ async def batch_ingest(input: BatchInput) -> BatchResult:
 
     try:
         async for result in router.process_directory(
-            str(input_path), 
-            recursive=input.recursive, 
-            max_concurrent=input.concurrency
+            str(input_path),
+            recursive=input.recursive,
+            concurrency=input.concurrency
         ):
             try:
                 output_path = await writer.write(result)
@@ -633,14 +633,14 @@ async def detect_file_type(file_path: str) -> dict:
     Returns:
         Detected file type information
     """
-    from ingestor.core.detector import TypeDetector
+    from ingestor.core.detector import FileDetector
     from ingestor.types import MediaType
 
     path = Path(file_path)
     if not path.exists():
         return {"error": f"File not found: {file_path}"}
 
-    detector = TypeDetector()
+    detector = FileDetector()
     media_type = detector.detect(path)
 
     return {
@@ -880,89 +880,9 @@ async def transcribe_audio(input: AudioTranscribeInput) -> AudioTranscribeResult
 
 def _create_registry():
     """Create extractor registry with available extractors."""
-    from ingestor.core.registry import ExtractorRegistry
-    
-    registry = ExtractorRegistry()
-    
-    # Register available extractors
-    try:
-        from ingestor.extractors.pdf import PdfExtractor
-        from ingestor.types import MediaType
-        registry.register(MediaType.PDF, PdfExtractor())
-    except ImportError:
-        pass
-    
-    try:
-        from ingestor.extractors.docx import DocxExtractor
-        from ingestor.types import MediaType
-        registry.register(MediaType.DOCX, DocxExtractor())
-    except ImportError:
-        pass
-    
-    try:
-        from ingestor.extractors.pptx import PptxExtractor
-        from ingestor.types import MediaType
-        registry.register(MediaType.PPTX, PptxExtractor())
-    except ImportError:
-        pass
-    
-    try:
-        from ingestor.extractors.epub import EpubExtractor
-        from ingestor.types import MediaType
-        registry.register(MediaType.EPUB, EpubExtractor())
-    except ImportError:
-        pass
-    
-    try:
-        from ingestor.extractors.xlsx import XlsxExtractor
-        from ingestor.types import MediaType
-        registry.register(MediaType.XLSX, XlsxExtractor())
-    except ImportError:
-        pass
-    
-    try:
-        from ingestor.extractors.web import WebExtractor
-        from ingestor.types import MediaType
-        registry.register(MediaType.WEB, WebExtractor())
-    except ImportError:
-        pass
-    
-    try:
-        from ingestor.extractors.youtube import YouTubeExtractor
-        from ingestor.types import MediaType
-        registry.register(MediaType.YOUTUBE, YouTubeExtractor())
-    except ImportError:
-        pass
-    
-    try:
-        from ingestor.extractors.git import GitExtractor
-        from ingestor.types import MediaType
-        registry.register(MediaType.GIT, GitExtractor())
-    except ImportError:
-        pass
-    
-    try:
-        from ingestor.extractors.audio import AudioExtractor
-        from ingestor.types import MediaType
-        registry.register(MediaType.AUDIO, AudioExtractor())
-    except ImportError:
-        pass
-    
-    try:
-        from ingestor.extractors.text import TextExtractor
-        from ingestor.types import MediaType
-        registry.register(MediaType.TEXT, TextExtractor())
-    except ImportError:
-        pass
-    
-    try:
-        from ingestor.extractors.markdown import MarkdownExtractor
-        from ingestor.types import MediaType
-        registry.register(MediaType.MARKDOWN, MarkdownExtractor())
-    except ImportError:
-        pass
-    
-    return registry
+    from ingestor.core.registry import create_default_registry
+
+    return create_default_registry()
 
 
 def main():

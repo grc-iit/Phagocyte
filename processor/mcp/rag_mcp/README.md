@@ -5,14 +5,20 @@ MCP (Model Context Protocol) server for RAG search operations. Provides semantic
 ## Installation
 
 ```bash
-# Install with MCP support
+# From the processor directory
+cd processor
+
+# Option 1: Install with MCP support (editable mode)
+uv pip install -e ".[mcp]"
+
+# Option 2: Or use uv sync
 uv sync --extra mcp
 
 # Optional: Install Claude SDK for HyDE optimization
-uv sync --extra claude-sdk
+uv pip install -e ".[claude-sdk]"
 
 # Optional: Install cross-encoder for reranking
-uv sync --extra reranker
+uv pip install -e ".[reranker]"
 ```
 
 ## Usage
@@ -49,6 +55,11 @@ uv run rag-mcp --config ./my_config.yaml
 ### Claude Code (CLI)
 
 ```bash
+# Add MCP with directory specification (recommended)
+claude mcp add rag -- uv --directory /path/to/processor run rag-mcp
+
+# Or if running from processor directory
+cd /path/to/processor
 claude mcp add rag -- uv run rag-mcp
 ```
 

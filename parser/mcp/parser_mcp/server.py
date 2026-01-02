@@ -400,18 +400,42 @@ async def parse_references(input: ParseRefsInput) -> ParseRefsResult:
 
     try:
         # Use regex parser first
-        from parser.agent.reference_parser import parse_references_regex
-        references = parse_references_regex(content)
+        from parser.parser import ResearchParser
+        parser = ResearchParser()
+        parsed_refs = parser.parse(content)
+
+        # Convert ParsedReference objects to dicts
+        references = []
+        for ref in parsed_refs:
+            ref_dict = {
+                "type": ref.type.value,
+                "value": ref.value,
+                "title": ref.title,
+                "authors": ref.authors,
+                "year": ref.year,
+                "url": ref.url,
+                "context": ref.context,
+                "metadata": ref.metadata,
+            }
+            # Add DOI if available (for DOI type references)
+            if ref.type.value == "doi":
+                ref_dict["doi"] = ref.value
+            # Add arXiv ID if available
+            elif ref.type.value == "arxiv":
+                ref_dict["arxiv_id"] = ref.value
+            references.append(ref_dict)
 
         # If agent requested, enhance with AI
         if input.agent != "none":
             try:
                 if input.agent == "claude":
-                    from parser.agent.claude_parser import enhance_references_claude
-                    references = await enhance_references_claude(content, references)
+                    from parser.agent.anthropic_agent import AnthropicAgent
+                    agent = AnthropicAgent()
+                    references = await agent.enhance_references(content, references)
                 elif input.agent == "gemini":
-                    from parser.agent.gemini_parser import enhance_references_gemini
-                    references = await enhance_references_gemini(content, references)
+                    from parser.agent.gemini_agent import GeminiAgent
+                    agent = GeminiAgent()
+                    references = await agent.enhance_references(content, references)
             except ImportError:
                 pass  # Fall back to regex only
             except Exception:
@@ -480,22 +504,30 @@ async def doi_to_bibtex(input: DoiBibInput) -> DoiBibResult:
     Example:
         doi_to_bibtex(dois=["10.1038/nature12373", "10.1145/3065386"])
     """
-    from parser.doi2bib.converter import doi_to_bibtex as convert_doi
+    from parser.doi2bib.metadata import get_metadata
+    from parser.doi2bib.resolver import resolve_identifier
 
     results = []
     errors = []
     bibtex_entries = []
 
-    for doi in input.dois:
+    for identifier in input.dois:
         try:
-            bib = await convert_doi(doi)
-            if bib:
+            # Resolve the identifier
+            ident = resolve_identifier(identifier)
+
+            # Get metadata
+            metadata = await get_metadata(ident)
+
+            if metadata:
+                # Convert to BibTeX
+                bib = metadata.to_bibtex()
                 bibtex_entries.append(bib)
-                results.append(doi)
+                results.append(identifier)
             else:
-                errors.append(f"{doi}: No BibTeX returned")
+                errors.append(f"{identifier}: No metadata found")
         except Exception as e:
-            errors.append(f"{doi}: {str(e)}")
+            errors.append(f"{identifier}: {str(e)}")
 
     bibtex_content = "\n\n".join(bibtex_entries) if bibtex_entries else None
 

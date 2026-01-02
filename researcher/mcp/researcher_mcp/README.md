@@ -5,7 +5,13 @@ MCP (Model Context Protocol) server for AI-powered deep research operations usin
 ## Installation
 
 ```bash
-# Install with MCP support
+# From the researcher directory
+cd researcher
+
+# Option 1: Install with MCP support (editable mode)
+uv pip install -e ".[mcp]"
+
+# Option 2: Or use uv sync
 uv sync --extra mcp
 ```
 
@@ -52,6 +58,11 @@ Get an API key from: https://aistudio.google.com/
 ### Claude Code (CLI)
 
 ```bash
+# Add MCP with directory specification (recommended)
+claude mcp add researcher -- uv --directory /path/to/researcher run researcher-mcp
+
+# Or if running from researcher directory
+cd /path/to/researcher
 claude mcp add researcher -- uv run researcher-mcp
 ```
 

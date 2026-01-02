@@ -5,12 +5,18 @@ MCP (Model Context Protocol) server for scientific paper acquisition, reference 
 ## Installation
 
 ```bash
-# Install with MCP support
+# From the parser directory
+cd parser
+
+# Option 1: Install with MCP support (editable mode)
+uv pip install -e ".[mcp]"
+
+# Option 2: Or use uv sync
 uv sync --extra mcp
 
 # Optional: Install AI agents for enhanced parsing
-uv sync --extra claude-sdk  # Claude agent (recommended)
-uv sync --extra gemini      # Gemini agent
+uv pip install -e ".[claude-sdk]"  # Claude agent (recommended)
+uv pip install -e ".[gemini]"      # Gemini agent
 ```
 
 ## Usage
@@ -45,6 +51,11 @@ uv run parser-mcp
 ### Claude Code (CLI)
 
 ```bash
+# Add MCP with directory specification (recommended)
+claude mcp add parser -- uv --directory /path/to/parser run parser-mcp
+
+# Or if running from parser directory
+cd /path/to/parser
 claude mcp add parser -- uv run parser-mcp
 ```
 

@@ -5,22 +5,28 @@ MCP (Model Context Protocol) server for comprehensive media-to-markdown ingestio
 ## Installation
 
 ```bash
-# Install with MCP support
+# From the ingestor directory
+cd ingestor
+
+# Option 1: Install with MCP support (editable mode)
+uv pip install -e ".[mcp]"
+
+# Option 2: Or use uv sync
 uv sync --extra mcp
 
 # Install format-specific extractors as needed
-uv sync --extra pdf       # PDF support
-uv sync --extra docx      # Word documents
-uv sync --extra pptx      # PowerPoint
-uv sync --extra epub      # eBooks
-uv sync --extra xlsx      # Excel
-uv sync --extra web       # Website crawling
-uv sync --extra youtube   # YouTube transcripts
-uv sync --extra audio     # Audio transcription (Whisper)
-uv sync --extra vlm       # Image descriptions (Ollama)
+uv pip install -e ".[pdf]"       # PDF support
+uv pip install -e ".[docx]"      # Word documents
+uv pip install -e ".[pptx]"      # PowerPoint
+uv pip install -e ".[epub]"      # eBooks
+uv pip install -e ".[xlsx]"      # Excel
+uv pip install -e ".[web]"       # Website crawling
+uv pip install -e ".[youtube]"   # YouTube transcripts
+uv pip install -e ".[audio]"     # Audio transcription (Whisper)
+uv pip install -e ".[vlm]"       # Image descriptions (Ollama)
 
 # Or install everything
-uv sync --extra all
+uv pip install -e ".[all]"
 ```
 
 ## Usage
@@ -51,6 +57,11 @@ uv run ingestor-mcp
 ### Claude Code (CLI)
 
 ```bash
+# Add MCP with directory specification (recommended)
+claude mcp add ingestor -- uv --directory /path/to/ingestor run ingestor-mcp
+
+# Or if running from ingestor directory
+cd /path/to/ingestor
 claude mcp add ingestor -- uv run ingestor-mcp
 ```
 

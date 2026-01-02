@@ -5,7 +5,13 @@ MCP (Model Context Protocol) server for document processing operations. Exposes 
 ## Installation
 
 ```bash
-# Install with MCP support
+# From the processor directory
+cd processor
+
+# Option 1: Install with MCP support (editable mode)
+uv pip install -e ".[mcp]"
+
+# Option 2: Or use uv sync
 uv sync --extra mcp
 ```
 
@@ -37,6 +43,11 @@ uv run processor-mcp
 ### Claude Code (CLI)
 
 ```bash
+# Add MCP with directory specification (recommended)
+claude mcp add processor -- uv --directory /path/to/processor run processor-mcp
+
+# Or if running from processor directory
+cd /path/to/processor
 claude mcp add processor -- uv run processor-mcp
 ```
 

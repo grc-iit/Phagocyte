@@ -169,23 +169,25 @@ async def deep_research(input: ResearchInput) -> ResearchResult:
 
     try:
         researcher = DeepResearcher(api_key=api_key, config=config)
-        output_path = Path(input.output_dir)
+        output_path = Path(input.output_dir) / "research"
         output_path.mkdir(parents=True, exist_ok=True)
 
         # Conduct research
         result = await researcher.research(
             query=input.query,
-            output_path=output_path,
-            progress_callback=None,  # No streaming for MCP
+            on_progress=None,  # No streaming for MCP
         )
+
+        # Save the results to files
+        result.save(output_path)
 
         duration = time.time() - start_time
 
         return ResearchResult(
             success=True,
-            report_path=str(result.get("report_path")) if result.get("report_path") else None,
-            metadata_path=str(result.get("metadata_path")) if result.get("metadata_path") else None,
-            thinking_path=str(result.get("thinking_path")) if result.get("thinking_path") else None,
+            report_path=str(output_path / "research_report.md"),
+            metadata_path=str(output_path / "research_metadata.json"),
+            thinking_path=str(output_path / "thinking_steps.md") if result.thinking_steps else None,
             query=input.query,
             mode=input.mode,
             duration_seconds=round(duration, 2),
