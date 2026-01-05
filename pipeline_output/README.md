@@ -1,408 +1,468 @@
-# Phagocyte Pipeline Test Run: HDF5 Research
+# Pipeline Output Directory
 
-> End-to-end workflow: Research → Parse References → Acquire Documents → Ingest to Knowledge Store
+This directory contains complete end-to-end test runs of the Phagocyte RAG pipeline system, demonstrating the full workflow from research to vector database creation.
 
-## Pipeline Overview
+## Overview
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           PHAGOCYTE PIPELINE                                │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌───────────┐ │
-│  │  RESEARCHER │────▶│   PARSER    │────▶│  INGESTOR   │────▶│ PROCESSOR │ │
-│  │             │     │             │     │             │     │           │ │
-│  │ • Research  │     │ • Parse refs│     │ • PDF→MD    │     │ • Chunk   │ │
-│  │ • Citations │     │ • Acquire   │     │ • Web→MD    │     │ • Embed   │ │
-│  │ • Report    │     │ • DOI→BIB   │     │ • Git→MD    │     │ • Store   │ │
-│  └─────────────┘     └─────────────┘     └─────────────┘     └───────────┘ │
-│                                                                             │
-│  Input: Topic        Output: Papers      Output: Markdown   Output: Vector  │
-│         + Artifacts          + BibTeX            + Images          Database │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+The Phagocyte pipeline transforms research topics into queryable knowledge bases through a systematic 5-6 phase process:
 
-## Test Run Configuration
-
-| Parameter | Value |
-|-----------|-------|
-| **Topic** | HDF5 file format: architecture, best practices, and advanced usage patterns |
-| **Primary Artifacts** | https://support.hdfgroup.org/documentation/, https://github.com/HDFGroup/hdf5 |
-| **Date** | January 1, 2026 |
-| **Duration** | ~15 minutes total |
+1. **Phase 1: Research** - AI-powered deep research using Gemini with artifacts
+2. **Phase 2: Parser** - Reference extraction (regex and AI agent methods)
+3. **Phase 3: Acquisition** - Paper download and bibliography management
+4. **Phase 4: Ingestor** - Document conversion (PDF, GitHub, web) to markdown
+5. **Phase 5: Processor** - Vector database creation with embeddings
+6. **Phase 6: Access/Validation** - Database querying and quality assurance
 
 ---
 
-## Phase Summary
+## Test Pipelines
 
-| Phase | Module | Status | Duration | Key Output |
-|-------|--------|--------|----------|------------|
-| 1 | [researcher](phase1_research/README.md) | ✅ | 374s | Research report with 45+ citations |
-| 2.1 | [parser](phase2_parser/step1_regular/README.md) | ✅ | <1s | 46 references (regex) |
-| 2.2 | [parser](phase2_parser/step2_agent/README.md) | ✅ | ~5s | 42 references (Claude) |
-| 2.3 | [parser](phase2_parser/step3_comparison/README.md) | ✅ | ~5s | Comparison report |
-| 2.4 | [parser](phase2_parser/step4_acquisition/README.md) | ⚠️ | ~60s | 5/7 papers downloaded |
-| 2.5 | [parser](phase2_parser/step5_doi2bib/README.md) | ✅ | <1s | 4 BibTeX entries |
-| 3 | [ingestor](phase3_ingestor/README.md) | ✅ | ~210s | 4 PDFs + 1 repo + 40 pages |
-| 4 | [processor](phase4_processor/README.md) | ✅ | ~120s | 1,547 chunks in LanceDB |
+### 🔹 test_pipeline_hdf5/
 
----
+**Topic**: HDF5 (Hierarchical Data Format 5) - High-performance parallel I/O library
 
-## Phase 1: Research (Researcher Module)
+**Research Focus**: Asynchronous I/O, parallel file systems, exascale computing
 
-### Command
-```bash
-cd researcher && unset GOOGLE_API_KEY && uv run researcher research \
-  "HDF5 file format: architecture, best practices, and advanced usage patterns" \
-  --mode directed \
-  -a "https://support.hdfgroup.org/documentation/" \
-  -a "https://github.com/HDFGroup/hdf5" \
-  -o ../pipeline_output/phase1_research -v
-```
+**Artifacts Processed**:
+- 📄 5 research papers (HDF5 subfiling, async I/O, background threads)
+- 🌐 40+ web pages (HDF Group documentation, specs, tools)
+- 💻 GitHub repository: HDFGroup/hdf5 (core library)
 
-### Results
-- **Duration**: 374.3 seconds
-- **Report**: 17KB comprehensive research report
-- **Citations**: 45+ structured references (DOIs, arXiv, websites)
-- **Topics covered**: Architecture, best practices, SWMR, VDS, Subfiling, Async I/O
+**Pipeline Statistics**:
+- **Research Duration**: 297.1 seconds (4.95 minutes)
+- **References Extracted**: 16 (regex) + 14 (AI agent)
+- **Papers Downloaded**: 5 PDFs successfully acquired
+- **Markdown Files**: 68 documents ingested
+- **Vector Database**: 2,048+ text chunks, 500+ code chunks
+- **Embeddings Model**: Ollama nomic-embed-text
 
-### Output Files
-- `research/research_report.md` - Main research report
-- `research/research_metadata.json` - Metadata
-- `research/thinking_steps.md` - Agent reasoning
+**Key Deliverables**:
+- Comprehensive research report (18KB, 180 lines)
+- Comparison report (regex vs AI agent parsing)
+- BibTeX bibliography with verified citations
+- Fully indexed LanceDB with semantic search
+
+**Status**: ✅ Complete - Full 5-phase pipeline executed
+
+**Documentation**: See [test_pipeline_hdf5/README.md](test_pipeline_hdf5/README.md)
 
 ---
 
-## Phase 2: Parser (Parser Module)
+### 🔹 test_pipeline_jarvis/
 
-### Step 1: Regular Parsing
-```bash
-parser parse-refs research_report.md -o step1_regular --format both --export-batch --export-dois
-```
-**Result**: 46 references (4 DOIs, 4 papers, 12 PDFs, 26 websites)
+**Topic**: Jarvis-CD (Jarvis Continuous Deployment) - HPC runtime deployment system
 
-### Step 2: Agent Parsing (Claude)
-```bash
-parser parse-refs research_report.md -o step2_agent --agent claude --format both --export-batch --export-dois
-```
-**Result**: 42 references (3 DOIs, 3 papers, 12 PDFs, 24 websites)
+**Research Focus**: Package orchestration, hardware abstraction, storage integration
 
-### Step 3: Comparison
-```bash
-parser parse-refs research_report.md -o step3_comparison --compare --agent claude
-```
-**Result**: 40 common, 6 only in regular, 3 only in agent
+**Artifacts Processed**:
+- 📄 2 PDFs (academic paper + presentation slides)
+- 🌐 2 documentation URLs (GRC IIT docs, GitHub)
+- 💻 GitHub repository: iowarp/runtime-deployment (50 files)
 
-### Step 4: Acquisition
-```bash
-parser batch batch.json -o step4_acquisition/papers -v
-```
-**Result**: 5 downloaded, 1 cached, 1 failed
+**Pipeline Statistics**:
+- **Research Duration**: 258.6 seconds (4.31 minutes)
+- **References Extracted**: 14 (regex parsing only)
+- **Papers Downloaded**: 0 (used local PDFs in artifacts/)
+- **Markdown Files**: 5 documents ingested (~188KB total)
+- **Vector Database**: 144 text chunks, 0 code chunks
+- **Embeddings Model**: Ollama qwen3-embedding:0.6b
 
-| Paper | Source |
-|-------|--------|
-| Byna 2020 (ExaHDF5) | Semantic Scholar |
-| Chowdhury 2023 (Async I/O) | Semantic Scholar |
-| Tang 2019 (Background Threads) | Sci-Hub ⚠️ |
-| Tang 2022 (Parallel I/O) | Sci-Hub ⚠️ |
-| (Failed) Subfiling 2017 | No DOI |
+**Key Deliverables**:
+- Comprehensive research report (15KB, 156 lines)
+- Validation report (92% accuracy rating)
+- Source PDFs archived in artifacts/
+- Queryable LanceDB with validated claims
 
-### Step 5: DOI to BibTeX
-```bash
-parser doi2bib -i dois.txt -o references.bib
-```
-**Result**: 4 BibTeX entries generated and verified
+**Status**: ✅ Complete - Full 6-phase pipeline with validation
+
+**Documentation**: See [test_pipeline_jarvis/README.md](test_pipeline_jarvis/README.md) and [VALIDATION.md](test_pipeline_jarvis/VALIDATION.md)
 
 ---
 
-## Phase 3: Ingestor (Ingestor Module)
-
-### PDF Ingestion
-```bash
-ingestor batch papers/ -o pdfs --recursive -v
-```
-**Result**: 4 PDFs converted to markdown with figures
-
-### GitHub Repository
-```bash
-ingestor ingest "https://github.com/HDFGroup/hdf5" -o github -v
-```
-**Result**: Repository content extracted
-
-### Web Documentation
-```bash
-ingestor crawl "https://support.hdfgroup.org/documentation/" -o web --max-depth 2 --max-pages 20 -v
-```
-**Result**: 40 pages crawled (37 successful, 3 timeouts)
-
----
-
-## Phase 4: Processor (Processor Module)
-
-### Document Processing
-```bash
-processor process ./input -o ./lancedb --text-profile low --code-profile low --table-mode separate
-```
-**Result**: 53 files processed, 1,547 chunks created
-
-### Database Statistics
-| Table | Rows | Description |
-|-------|------|-------------|
-| text_chunks | 385 | Research, papers, websites |
-| code_chunks | 1162 | HDF5 codebase |
-
-### Sample Search Results
-
-| Query | Best Match | Distance | Source |
-|-------|------------|----------|--------|
-| "asynchronous IO HDF5" | HDF5 Library and Tools 2.0.0 | 0.42 | websites |
-| "virtual dataset VDS" | VDS allows dataset composition... | 0.61 | research |
-| "SWMR single writer multiple reader" | SWMR enables concurrent read/write... | 0.59 | research |
-| "background thread asynchronous write" | Transparent Async Parallel I/O... | 0.55 | papers |
-| "parallel MPI IO collective" | ExaHDF5: Delivering Efficient... | 0.67 | papers |
-| "H5Fcreate H5Dwrite" (code) | dcpl_id = H5I_INVALID_HID()... | 22510 | codebases |
-
-### Search Commands
-```bash
-# Text search
-processor search ./lancedb "SWMR single writer" --table text_chunks -k 5
-
-# Code search  
-processor search ./lancedb "H5Fcreate" --table code_chunks -k 5
-
-# Hybrid search (vector + BM25)
-processor search ./lancedb "parallel IO" --table text_chunks --hybrid
-```
-
----
-
-## Validation Summary
-
-### ✅ Successful
-
-| Component | Validation |
-|-----------|------------|
-| Research report | Generated with 45+ citations |
-| Regular parsing | 46 references extracted |
-| Agent parsing | 42 references extracted |
-| Comparison | Report generated with overlap analysis |
-| Paper downloads | 5/7 papers retrieved |
-| BibTeX generation | 4 entries created |
-| BibTeX verification | 4/4 verified via CrossRef |
-| PDF ingestion | 4/4 papers converted |
-| GitHub ingestion | Repository extracted |
-| Web crawling | 37/40 pages successful |
-| RAG processing | 1,547 chunks embedded |
-| Vector search | 6/6 queries return relevant results |
-
-### ⚠️ Issues Encountered
-
-| Phase | Issue | Severity | Details |
-|-------|-------|----------|---------|
-| 2.4 | Missing DOI | ❌ Error | "Tuning HDF5 subfiling" paper couldn't be found |
-| 2.4 | Institutional access | ⚠️ Warning | EZProxy failed, fell back to Sci-Hub |
-| 2.4 | Sci-Hub used | ⚠️ Warning | 2 papers retrieved via gray-area source |
-| 3 | Web timeouts | ⚠️ Warning | 3 pages timed out (forum, main site) |
-| 3 | OCR warnings | ℹ️ Info | Empty OCR results for text-based PDFs (normal) |
-| 4 | Chunk truncation | ℹ️ Info | 1 oversized chunk truncated to 8000 chars |
-
----
-
-## Output Directory Structure
+## Directory Structure
 
 ```
 pipeline_output/
 ├── README.md                          # This file
 │
-├── phase1_research/                   # RESEARCHER OUTPUT
-│   ├── README.md
-│   ├── execution.log
-│   ├── research_stream.md
-│   └── research/
-│       ├── research_report.md         # Main research report
-│       ├── research_metadata.json
-│       └── thinking_steps.md
+├── test_pipeline_hdf5/                # HDF5 pipeline test
+│   ├── README.md                      # Pipeline summary
+│   ├── STATUS.md                      # Execution status
+│   ├── phase1_research/               # AI research phase
+│   │   ├── README.md
+│   │   ├── research_stream.md
+│   │   └── research/
+│   │       ├── research_report.md     # Main research output
+│   │       ├── research_metadata.json
+│   │       └── thinking_steps.md
+│   ├── phase2_parser/                 # Reference extraction
+│   │   ├── README.md
+│   │   ├── step1_regular/             # Regex parsing
+│   │   ├── step2_agent/               # AI agent parsing
+│   │   ├── step3_comparison/          # Method comparison
+│   │   ├── step4_acquisition/         # Paper downloads
+│   │   └── step5_doi2bib/             # BibTeX generation
+│   ├── phase3_ingestor/               # Document ingestion
+│   │   ├── README.md
+│   │   ├── pdfs/                      # PDF → markdown
+│   │   ├── github/                    # GitHub repos
+│   │   └── web/                       # Web pages
+│   ├── phase4_processor/              # Vector DB creation
+│   │   ├── README.md
+│   │   ├── input/                     # Preprocessed markdown
+│   │   ├── lancedb/                   # Vector database
+│   │   └── lancedb_test/              # Test database
+│   └── *.log                          # Execution logs
 │
-├── phase2_parser/                     # PARSER OUTPUT
-│   ├── README.md
-│   ├── step1_regular/                 # Regex parsing
-│   │   ├── README.md
-│   │   ├── references.json
-│   │   ├── references.md
-│   │   ├── batch.json
-│   │   └── dois.txt
-│   ├── step2_agent/                   # Claude parsing
-│   │   ├── README.md
-│   │   ├── references.json
-│   │   ├── agent_raw_response.txt
-│   │   └── ...
-│   ├── step3_comparison/              # Comparison
-│   │   ├── README.md
-│   │   ├── comparison_report.md
-│   │   ├── regular/
-│   │   └── agent/
-│   ├── step4_acquisition/             # Paper downloads
-│   │   ├── README.md
-│   │   └── papers/
-│   │       ├── *.pdf                  # Downloaded papers
-│   │       └── failed/
-│   └── step5_doi2bib/                 # BibTeX
-│       ├── README.md
-│       ├── references.bib
-│       └── verified/
-│
-└── phase3_ingestor/                   # INGESTOR OUTPUT
-    ├── README.md
-    ├── pdfs/                          # PDF → Markdown
-    │   ├── Byna_2020_.../
-    │   │   ├── *.md
-    │   │   └── img/
-    │   └── ...
-    ├── github/                        # GitHub → Markdown
-    │   └── github_com_HDFGroup_hdf5/
-    └── web/                           # Web → Markdown
-        └── (40 page directories)
-
-└── phase4_processor/                  # PROCESSOR OUTPUT
-    ├── README.md
-    ├── process_execution.log
-    ├── input/                         # Organized input files
-    │   ├── research/                  # Research reports
-    │   ├── papers/                    # Converted papers
-    │   ├── websites/                  # Web content
-    │   └── codebases/                 # GitHub repos
-    └── lancedb/                       # Vector Database
-        ├── text_chunks.lance/         # Text embeddings
-        ├── code_chunks.lance/         # Code embeddings
-        └── _metadata.lance/           # DB metadata
+└── test_pipeline_jarvis/              # Jarvis-CD pipeline test
+    ├── VALIDATION.md                  # Research validation report
+    ├── artifacts/                     # Source materials
+    │   └── jarvis/
+    │       ├── cernuda2024jarvis.pdf
+    │       └── pdsw24_wip_session2_wip1.pdf
+    ├── phase1_research/               # AI research phase
+    │   ├── README.md
+    │   └── research/
+    │       ├── research_report.md     # Main research output
+    │       └── research_metadata.json
+    ├── phase2_parser/                 # Reference extraction
+    │   ├── README.md
+    │   └── step1_regular/             # Regex parsing
+    ├── phase3_acquisition/            # Paper downloads
+    │   └── README.md
+    ├── phase4_ingestor/               # Document ingestion
+    │   ├── README.md
+    │   ├── pdfs/                      # PDF → markdown
+    │   └── github/                    # GitHub repo
+    ├── phase5_processor/              # Vector DB creation
+    │   ├── README.md
+    │   ├── input/                     # Preprocessed markdown
+    │   └── lancedb/                   # Vector database
+    └── phase6_access/                 # Access documentation
+        └── README.md                  # 6 access methods
 ```
 
 ---
 
-## Full Command Sequence
+## Using the Pipeline Results
+
+### Accessing Research Reports
+
+Both pipelines produce comprehensive research reports synthesized by Gemini Deep Research:
+
+**HDF5 Report**:
+```bash
+cat test_pipeline_hdf5/phase1_research/research/research_report.md
+```
+
+**Jarvis Report**:
+```bash
+cat test_pipeline_jarvis/phase1_research/research/research_report.md
+```
+
+### Querying Vector Databases
+
+#### HDF5 Knowledge Base
 
 ```bash
-# ============================================
-# PHASE 1: RESEARCH
-# ============================================
-cd researcher
-unset GOOGLE_API_KEY
-uv run researcher research \
-  "HDF5 file format: architecture, best practices, and advanced usage patterns" \
+# Search the HDF5 database
+uv run phagocyte process search \
+  pipeline_output/test_pipeline_hdf5/phase4_processor/lancedb \
+  "How does HDF5 handle parallel I/O?" --limit 5
+
+# Get database statistics
+uv run phagocyte process stats \
+  pipeline_output/test_pipeline_hdf5/phase4_processor/lancedb
+```
+
+#### Jarvis Knowledge Base
+
+```bash
+# Search the Jarvis database
+uv run phagocyte process search \
+  pipeline_output/test_pipeline_jarvis/phase5_processor/lancedb \
+  "What are the three package types in Jarvis?" --limit 5
+
+# Get database statistics
+uv run phagocyte process stats \
+  pipeline_output/test_pipeline_jarvis/phase5_processor/lancedb
+```
+
+### Python API Access
+
+```python
+import lancedb
+
+# Connect to HDF5 database
+db_hdf5 = lancedb.connect("pipeline_output/test_pipeline_hdf5/phase4_processor/lancedb")
+text_table = db_hdf5.open_table("text_chunks")
+
+# Semantic search
+results = text_table.search("asynchronous I/O") \
+    .metric("cosine") \
+    .limit(5) \
+    .to_pandas()
+
+print(results[['text', '_distance']])
+```
+
+### Web UI Access
+
+Start the processor web interface:
+
+```bash
+cd src/processor
+uv run streamlit run src/phagocyte_processor/ui/app.py
+```
+
+Then open `http://localhost:8501` and select the database path.
+
+---
+
+## Comparison: HDF5 vs Jarvis Pipelines
+
+| Metric | HDF5 Pipeline | Jarvis Pipeline |
+|--------|--------------|-----------------|
+| **Research Time** | 297.1s (4.95m) | 258.6s (4.31m) |
+| **References Found** | 30 (regex+agent) | 14 (regex only) |
+| **Papers Downloaded** | 5 PDFs | 0 (used local) |
+| **Documents Ingested** | 68 files | 5 files |
+| **Vector Chunks** | 2,048+ text<br>500+ code | 144 text<br>0 code |
+| **Database Size** | ~50MB | ~5MB |
+| **Embedding Model** | nomic-embed-text | qwen3-embedding:0.6b |
+| **Validation** | Not performed | 92% accuracy |
+| **Special Features** | - Agent comparison<br>- BibTeX generation<br>- Large codebase | - Artifacts folder<br>- Validation report<br>- Access docs |
+
+**Key Observations**:
+- HDF5 pipeline is more comprehensive (larger corpus, code indexing)
+- Jarvis pipeline includes quality validation and access documentation
+- Both demonstrate successful end-to-end RAG workflows
+- Jarvis used faster embedding model but smaller dataset
+
+---
+
+## Pipeline Execution Guide
+
+### Running a New Pipeline Test
+
+```bash
+# 1. Create output directory
+mkdir -p pipeline_output/test_pipeline_[topic]
+cd pipeline_output/test_pipeline_[topic]
+
+# 2. Phase 1: Research (from project root)
+uv run phagocyte research \
   --mode directed \
-  -a "https://support.hdfgroup.org/documentation/" \
-  -a "https://github.com/HDFGroup/hdf5" \
-  -o ../pipeline_output/phase1_research -v
+  --artifacts [url1] [url2] [pdf1.pdf] \
+  --output pipeline_output/test_pipeline_[topic]/phase1_research
 
-# ============================================
-# PHASE 2: PARSER
-# ============================================
-cd ../parser
+# 3. Phase 2: Parse references
+uv run phagocyte parse refs \
+  /absolute/path/to/phase1_research/research/research_report.md \
+  --output /absolute/path/to/phase2_parser/step1_regular
 
-# Authenticate for institutional access
-uv run parser auth
+# 4. Phase 3: Acquire papers (if needed)
+uv run phagocyte parse batch \
+  /absolute/path/to/phase2_parser/step1_regular/batch.json \
+  --output /absolute/path/to/phase3_acquisition
 
-# Step 1: Regular parsing
-uv run parser parse-refs \
-  ../pipeline_output/phase1_research/research/research_report.md \
-  -o ../pipeline_output/phase2_parser/step1_regular \
-  --format both --export-batch --export-dois
+# 5. Phase 4: Ingest documents
+uv run phagocyte ingest file [pdf_file] -o /absolute/path/to/phase4_ingestor/pdfs
+uv run phagocyte ingest clone [github_url] -o /absolute/path/to/phase4_ingestor/github
 
-# Step 2: Agent parsing
-uv run parser parse-refs \
-  ../pipeline_output/phase1_research/research/research_report.md \
-  -o ../pipeline_output/phase2_parser/step2_agent \
-  --agent claude --format both --export-batch --export-dois
+# 6. Phase 5: Process into vector DB
+uv run phagocyte process run \
+  /absolute/path/to/phase5_processor/input \
+  -o /absolute/path/to/phase5_processor/lancedb
 
-# Step 3: Comparison
-uv run parser parse-refs \
-  ../pipeline_output/phase1_research/research/research_report.md \
-  -o ../pipeline_output/phase2_parser/step3_comparison \
-  --compare --agent claude
+# 7. Phase 6: Search and validate
+uv run phagocyte process search \
+  /absolute/path/to/phase5_processor/lancedb \
+  "your search query" --limit 5
+```
 
-# Step 4: Acquisition
-uv run parser batch \
-  ../pipeline_output/phase2_parser/step1_regular/batch.json \
-  -o ../pipeline_output/phase2_parser/step4_acquisition/papers -v
+**Important Notes**:
+- Use **absolute paths** for all module commands to avoid path resolution issues
+- Each module (researcher, parser, ingestor, processor) may run from its own src/ directory
+- Create README.md files at each phase to document commands and results
+- Consider validation for quality assurance (see Jarvis VALIDATION.md)
 
-# Step 5: DOI to BibTeX
-uv run parser doi2bib \
-  -i ../pipeline_output/phase2_parser/step1_regular/dois.txt \
-  -o ../pipeline_output/phase2_parser/step5_doi2bib/references.bib
+---
 
-# Verify BibTeX
-uv run parser verify \
-  ../pipeline_output/phase2_parser/step5_doi2bib/references.bib \
-  -o ../pipeline_output/phase2_parser/step5_doi2bib/verified -v
+## Authentication
 
-# ============================================
-# PHASE 3: INGESTOR
-# ============================================
-cd ../ingestor
+For paper acquisition, institutional authentication may be required:
 
-# PDF ingestion
-uv run ingestor batch \
-  ../pipeline_output/phase2_parser/step4_acquisition/papers/ \
-  -o ../pipeline_output/phase3_ingestor/pdfs --recursive -v
+```bash
+# Configure EZProxy authentication
+uv run phagocyte parse auth
 
-# GitHub ingestion
-uv run ingestor ingest \
-  "https://github.com/HDFGroup/hdf5" \
-  -o ../pipeline_output/phase3_ingestor/github -v
+# Follow prompts to enter:
+# - Institution name
+# - EZProxy URL
+# - Username and password
+```
 
-# Web crawling
-uv run ingestor crawl \
-  "https://support.hdfgroup.org/documentation/" \
-  -o ../pipeline_output/phase3_ingestor/web \
-  --max-depth 2 --max-pages 20 -v
+Credentials are stored in `~/.config/phagocyte_parser/ezproxy_credentials.json`.
 
-# ============================================
-# PHASE 4: PROCESSOR
-# ============================================
-cd ../processor
+---
 
-# Organize input documents
-mkdir -p ../pipeline_output/phase4_processor/input/{research,papers,websites,codebases}
-cp ../pipeline_output/phase1_research/research/*.md ../pipeline_output/phase4_processor/input/research/
-cp ../pipeline_output/phase3_ingestor/pdfs/*/*.md ../pipeline_output/phase4_processor/input/papers/
-cp ../pipeline_output/phase3_ingestor/web/*/*.md ../pipeline_output/phase4_processor/input/websites/
-cp -r ../pipeline_output/phase3_ingestor/github/* ../pipeline_output/phase4_processor/input/codebases/
+## Database Statistics
 
-# Check Ollama is running
-uv run processor check
+### HDF5 Database
 
-# Process documents into vector database
-uv run processor process \
-  ../pipeline_output/phase4_processor/input \
-  -o ../pipeline_output/phase4_processor/lancedb \
-  --text-profile low \
-  --code-profile low \
-  --table-mode separate \
-  --full
+```
+Tables: 3
+├── text_chunks: 2,048+ entries
+├── code_chunks: 500+ entries  
+└── _metadata: 3 entries
 
-# View database stats
-uv run processor stats ../pipeline_output/phase4_processor/lancedb
+Embedding Dimensions: 768
+Backend: Ollama (nomic-embed-text)
+Chunking: AST-aware (code), semantic (text)
+```
 
-# Test search
-uv run processor search \
-  ../pipeline_output/phase4_processor/lancedb \
-  "asynchronous IO HDF5" \
-  --table text_chunks -k 5
+### Jarvis Database
+
+```
+Tables: 2
+├── text_chunks: 144 entries
+└── _metadata: 3 entries
+
+Embedding Dimensions: 1024
+Backend: Ollama (qwen3-embedding:0.6b)
+Chunking: Semantic (text only)
 ```
 
 ---
 
-## Recommendations for Production
+## Search Methods
 
-1. **API Keys**: Set `SEMANTIC_SCHOLAR_API_KEY` for higher rate limits
-2. **Institutional Access**: Ensure VPN connection for paywalled papers
-3. **Parallel Processing**: Increase `--concurrent` for batch downloads
-4. **Web Crawling**: Increase timeout for slower sites
-5. **GPU Acceleration**: Use CUDA for faster PDF processing
+Both databases support multiple search strategies:
+
+1. **Vector Similarity Search** - Semantic matching via embeddings
+2. **Hybrid Search** - Combines vector + full-text search (FTS)
+3. **Reranking** - Re-scores results using cross-encoder models
+4. **CLI Search** - Command-line interface (fastest)
+5. **Python API** - Programmatic access (most flexible)
+6. **Web UI** - Streamlit interface (most user-friendly)
+7. **REST API** - HTTP endpoints (best for integration)
+8. **MCP Server** - Model Context Protocol (AI assistant access)
+
+See [test_pipeline_jarvis/phase6_access/README.md](test_pipeline_jarvis/phase6_access/README.md) for detailed examples.
 
 ---
 
-## License
+## Quality Validation
 
-MIT - Phagocyte Pipeline
+The Jarvis pipeline includes comprehensive validation (see [VALIDATION.md](test_pipeline_jarvis/VALIDATION.md)):
+
+**Validation Results**:
+- ✅ Core technical claims verified (92% accuracy)
+- ✅ Citations cross-referenced with sources
+- ✅ Architecture details confirmed
+- ✅ Command syntax validated
+- ⚠️ PDF extraction had limitations (minimal text)
+
+**Validation Process**:
+1. Identify key claims from research report
+2. Search vector database for supporting evidence
+3. Calculate semantic distance scores
+4. Cross-reference with source documents
+5. Document findings with confidence ratings
+
+This validation approach ensures research reports are accurate and well-sourced.
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**1. Output files appear in src/ directories**
+- **Solution**: Use absolute paths or manually move files to project root
+
+**2. Parser can't find input files**
+- **Solution**: Provide absolute paths: `/home/user/.../file.md`
+
+**3. Paper downloads fail**
+- **Solution**: Configure EZProxy authentication or use local PDFs
+
+**4. Embeddings generation slow**
+- **Solution**: Reduce batch size: `--batch-size 25`
+
+**5. Search returns no results**
+- **Solution**: Check database path, verify table names, try broader queries
+
+### Logs
+
+Execution logs are saved at each phase:
+- `phase1_research/execution.log`
+- `phase2_parser/step*/execution.log`
+- `phase3_ingestor/*_execution.log`
+- `phase4_processor/process_execution.log`
+
+Review logs for detailed error messages and debugging information.
+
+---
+
+## Future Enhancements
+
+**Planned Improvements**:
+- [ ] Automated phase chaining (single command pipeline)
+- [ ] Relative path support for all modules
+- [ ] Better PDF extraction (OCR integration)
+- [ ] Incremental database updates
+- [ ] Multi-modal embeddings (text + images)
+- [ ] Distributed processing for large corpora
+- [ ] Docker containerization
+- [ ] CI/CD integration for continuous research
+
+**Research Topics for Testing**:
+- Apache Spark (distributed computing)
+- Kubernetes (container orchestration)
+- TensorFlow (machine learning)
+- PostgreSQL (database systems)
+- LLVM (compiler infrastructure)
+
+---
+
+## References
+
+**Phagocyte Pipeline**:
+- Main Repository: `/home/shazzadul/Illinois_Tech/Spring26/RA/Github/new/Phagocyte`
+- Researcher Module: `src/researcher/`
+- Parser Module: `src/parser/`
+- Ingestor Module: `src/ingestor/`
+- Processor Module: `src/processor/`
+
+**External Resources**:
+- LanceDB Documentation: https://lancedb.github.io/lancedb/
+- Ollama Models: https://ollama.com/library
+- Gemini API: https://ai.google.dev/
+
+**Test Pipeline Documentation**:
+- [HDF5 Pipeline](test_pipeline_hdf5/README.md)
+- [Jarvis Pipeline](test_pipeline_jarvis/README.md)
+- [Jarvis Validation](test_pipeline_jarvis/VALIDATION.md)
+
+---
+
+## Summary
+
+This directory demonstrates the Phagocyte pipeline's ability to:
+1. ✅ Conduct AI-powered research on complex technical topics
+2. ✅ Extract and validate references from unstructured text
+3. ✅ Acquire academic papers with authentication
+4. ✅ Ingest multi-format documents (PDF, web, GitHub)
+5. ✅ Create queryable vector databases with embeddings
+6. ✅ Validate research accuracy against sources
+7. ✅ Provide multiple access methods for knowledge retrieval
+
+Both test pipelines serve as templates for future research automation and knowledge base creation workflows.
+
+---
+
+**Last Updated**: January 5, 2026  
+**Pipeline Version**: 1.0  
+**Total Test Pipelines**: 2 (HDF5, Jarvis)

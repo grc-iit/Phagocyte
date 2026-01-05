@@ -82,7 +82,6 @@ Thumbs.db
 /output/
 /outputs/
 *.log
-pipeline_output/
 test_pipeline/
 
 # uv
