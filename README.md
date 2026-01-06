@@ -24,10 +24,10 @@ An automated workflow that conducts AI-powered research, extracts and acquires a
 
 | Module | Description | Key Features |
 |--------|-------------|--------------|
-| **[researcher](src/researcher/)** | AI-powered deep research | Gemini Deep Research, citation extraction |
-| **[parser](src/parser/)** | Reference extraction & acquisition | Regex + AI parsing, multi-source downloads, DOI→BibTeX |
-| **[ingestor](src/ingestor/)** | Document → Markdown conversion | PDF, Web, GitHub, YouTube, Audio support |
-| **[processor](src/processor/)** | RAG document processing | AST-aware chunking, embeddings, LanceDB vector store |
+| **[researcher](src/researcher)** | AI-powered deep research | Gemini Deep Research, citation extraction |
+| **[parser](src/parser)** | Reference extraction & acquisition | Regex + AI parsing, multi-source downloads, DOI→BibTeX |
+| **[ingestor](src/ingestor)** | Document → Markdown conversion | PDF, Web, GitHub, YouTube, Audio support |
+| **[processor](src/processor)** | RAG document processing | AST-aware chunking, embeddings, LanceDB vector store |
 
 ---
 
