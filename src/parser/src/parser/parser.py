@@ -305,6 +305,7 @@ class ResearchParser:
 
         # [N] "Paper Title" (Author et al.). *Venue*, Year. [N]
         # Updated: Support venue in italics (*Venue*) and year at end
+        # Also captures DOI and OpenReview URLs on the same line
         ref_list_pattern = r'\[(\d+)\]\s*"([^"]{10,200})"\s*\(([^)]+)\)\.?\s*(?:\*([^*]+)\*)?[,.]?\s*(\d{4})?\.'
         for match in re.finditer(ref_list_pattern, text):
             title = match.group(2).strip()
@@ -313,8 +314,8 @@ class ResearchParser:
             year = match.group(5) if match.group(5) else ""
 
             # Also try to extract year from end of line if not captured
+            context = self._get_context(text, match)
             if not year:
-                context = self._get_context(text, match)
                 year_match = re.search(r'(\d{4})\.\s*\[\d+\]\s*$', context)
                 if year_match:
                     year = year_match.group(1)
@@ -327,6 +328,32 @@ class ResearchParser:
                         year = ""
                 except ValueError:
                     year = ""
+
+            # Extract DOI from same line if present
+            metadata = {}
+            doi_match = re.search(r'DOI:\s*(10\.\d{4,}/[^\s\|\]]+)', context)
+            if doi_match:
+                metadata['doi'] = doi_match.group(1).strip()
+
+            # Extract OpenReview URL from same line if present
+            openreview_match = re.search(r'openreview\.net/forum\?id=([^\s\|\]]+)', context, re.IGNORECASE)
+            if openreview_match:
+                metadata['openreview_id'] = openreview_match.group(1).strip()
+                metadata['openreview_url'] = f"https://openreview.net/forum?id={openreview_match.group(1).strip()}"
+
+            # Extract arXiv ID from same line if present
+            arxiv_match = re.search(r'arXiv:(\d{4}\.\d{4,5})', context)
+            if arxiv_match:
+                metadata['arxiv_id'] = arxiv_match.group(1).strip()
+
+            # Extract URL from same line if present (PDF or regular URL after "URL:")
+            url_match = re.search(r'URL:\s*(https?://[^\s\[\]]+)', context)
+            extracted_url = None
+            if url_match:
+                extracted_url = url_match.group(1).strip()
+                # If it's a PDF URL, store it in metadata
+                if extracted_url.endswith('.pdf'):
+                    metadata['pdf_url'] = extracted_url
 
             context = self._get_context(text, match)
             context_lower = context.lower()
@@ -362,6 +389,7 @@ class ResearchParser:
                     authors=authors,
                     year=year,
                     context=self._get_context(text, match),
+                    metadata=metadata,
                 ))
 
         # [N] "Title" (Source). Year. [N]  - for blog posts without et al.
@@ -684,9 +712,12 @@ class ResearchParser:
         return refs
 
     def _get_context(self, text: str, match) -> str:
-        """Get surrounding context for a match."""
+        """Get surrounding context for a match (including full line after match)."""
         start = max(0, match.start() - 50)
-        end = min(len(text), match.end() + 50)
+        # Extend to end of line to capture URLs after citations
+        end_pos = match.end()
+        newline_pos = text.find('\n', end_pos)
+        end = newline_pos if newline_pos != -1 else min(len(text), end_pos + 200)
         return text[start:end].strip()
 
     def _deduplicate(self, refs: list[ParsedReference]) -> list[ParsedReference]:

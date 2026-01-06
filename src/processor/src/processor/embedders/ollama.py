@@ -97,14 +97,28 @@ class OllamaEmbedder(BaseEmbedder):
         Returns:
             List of embedding vectors
         """
+        from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
+        
         embeddings: list[list[float]] = []
+        total = len(texts)
 
-        for i, text in enumerate(texts):
-            embedding = await self.embed(text)
-            embeddings.append(embedding)
-            # Add small delay to prevent server overload
-            if (i + 1) % 10 == 0:
-                await asyncio.sleep(0.1)
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            TextColumn("({task.completed}/{task.total})"),
+        ) as progress:
+            task = progress.add_task(f"[cyan]Embedding {total} chunks...", total=total)
+            
+            for i, text in enumerate(texts):
+                embedding = await self.embed(text)
+                embeddings.append(embedding)
+                progress.update(task, advance=1)
+                
+                # Add small delay to prevent server overload
+                if (i + 1) % 10 == 0:
+                    await asyncio.sleep(0.1)
 
         return embeddings
 

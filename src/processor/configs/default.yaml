@@ -31,7 +31,7 @@ embedding:
 
   # Model profiles (see profiles.py for model details)
   # Text: low (Qwen3 0.6B), medium (Qwen3 4B), high (Qwen3 8B)
-  text_profile: low
+  text_profile: medium
 
   # Code: low (jina-code 0.5B), high (jina-code 1.5B)
   code_profile: low

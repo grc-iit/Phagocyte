@@ -221,21 +221,21 @@ class Pipeline:
 
         # Embed and load text/code chunks
         if all_chunks:
-            console.print("Generating text/code embeddings...")
+            console.print(f"[cyan]Generating embeddings for {len(all_chunks)} chunks...[/cyan]")
             all_chunks = await self._embed_chunks(all_chunks)
 
             console.print("Loading text/code into LanceDB...")
             counts = await loader.load_chunks(all_chunks)
-            console.print(f"Loaded: text={counts['text_chunks']}, code={counts['code_chunks']}, unified={counts['unified_chunks']}")
+            console.print(f"[green]✓[/green] Loaded: text={counts['text_chunks']}, code={counts['code_chunks']}, unified={counts['unified_chunks']}")
 
-        # Embed and load image chunks (dual embeddings)
+        # Embed image chunks (dual embeddings)
         if image_chunks:
-            console.print("Generating image embeddings...")
+            console.print(f"[cyan]Generating embeddings for {len(image_chunks)} images...[/cyan]")
             image_chunks = await self._embed_image_chunks(image_chunks)
 
             console.print("Loading images into LanceDB...")
             image_counts = await loader.load_image_chunks(image_chunks)
-            console.print(f"Loaded: images={image_counts['image_chunks']}")
+            console.print(f"[green]✓[/green] Loaded: images={image_counts['image_chunks']}")
 
         # Save state
         from datetime import datetime

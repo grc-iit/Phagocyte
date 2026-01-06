@@ -352,7 +352,7 @@ class PaperRetriever:
                     await self.rate_limiter.wait("semantic_scholar")
                     results = await s2.search(title, limit=5)
                     for result in results:
-                        if result and result.get("year") and self._titles_match(title, result.get("title", ""), threshold=0.8):
+                        if result and result.get("year") and self._titles_match(title, result.get("title", ""), threshold=0.7):
                             found_doi = result.get("doi")
                             found_arxiv = result.get("arxiv_id")
                             return {
@@ -380,8 +380,8 @@ class PaperRetriever:
                             classification = classify_doi(result_doi)
                             if classification.get("type") in ("review", "book_chapter"):
                                 continue  # Skip this result
-                        # Check title similarity with higher threshold
-                        if result and result.get("year") and result.get("authors") and self._titles_match(title, result.get("title", ""), threshold=0.8):
+                        # Check title similarity
+                        if result and result.get("year") and result.get("authors") and self._titles_match(title, result.get("title", ""), threshold=0.7):
                             result["pdf_url"] = pdf_url  # Preserve original PDF URL
                             return result
                 except Exception:
@@ -508,7 +508,7 @@ class PaperRetriever:
                     results = await arxiv_client.search(quoted_title, limit=5)
                     for result in results:
                         found_title = result.get("title", "")
-                        if result.get("arxiv_id") and self._titles_match(title, found_title, threshold=0.8):
+                        if result.get("arxiv_id") and self._titles_match(title, found_title, threshold=0.7):
                             found_arxiv_id = result["arxiv_id"]
                             return {
                                 "doi": f"10.48550/arXiv.{found_arxiv_id.split('v')[0]}",
@@ -1075,34 +1075,72 @@ class PaperRetriever:
 
     @staticmethod
     def _normalize_title(title: str) -> str:
-        """Normalize a title for comparison."""
-        normalized = re.sub(r"[^\w\s]", "", title.lower())
-        return " ".join(normalized.split())
+        """Normalize a title for comparison.
+        
+        Removes:
+        - Punctuation and special characters
+        - Extra whitespace
+        - Common stopwords that don't affect meaning
+        - Converts to lowercase
+        """
+        # Convert to lowercase
+        normalized = title.lower()
+        
+        # Remove common subtitle separators and trailing content if very long
+        # But keep the main title intact
+        if ":" in normalized and len(normalized) > 100:
+            # Only split on first colon if title is very long (likely has subtitle)
+            parts = normalized.split(":", 1)
+            if len(parts[0]) > 30:  # Main title is substantial
+                normalized = parts[0]
+        
+        # Remove special characters but keep spaces
+        normalized = re.sub(r"[^\w\s]", " ", normalized)
+        
+        # Remove extra whitespace
+        normalized = " ".join(normalized.split())
+        
+        # Remove common academic stopwords that don't help matching
+        stopwords = {"a", "an", "the", "and", "or", "of", "to", "in", "for", "on", "at", "from", "with", "by"}
+        words = normalized.split()
+        # Only remove stopwords if they're not significant (title has enough other words)
+        if len(words) > 5:
+            words = [w for w in words if w not in stopwords or len(w) > 3]
+        
+        return " ".join(words)
 
     def _titles_match(self, title1: str, title2: str, threshold: float = 0.6) -> bool:
         """Check if two titles are similar enough.
 
-        Uses two methods:
-        1. Substring match: If one title contains the other (for truncated titles)
-           Only matches if shorter is at least 60% of longer length
-        2. Word overlap: Jaccard similarity of words
+        Uses multiple methods:
+        1. Exact normalized match
+        2. Substring match: If one title contains the other (for truncated titles)
+           Only matches if shorter is at least 50% of longer length
+        3. Word overlap: Jaccard similarity of words
+        4. Fuzzy string matching: Character-level similarity
 
         Args:
             title1: First title (usually the query)
             title2: Second title (usually the found result)
             threshold: Minimum similarity score (0.0 to 1.0), default 0.6
         """
+        if not title1 or not title2:
+            return False
+            
         norm1 = self._normalize_title(title1)
         norm2 = self._normalize_title(title2)
 
+        # Exact match after normalization
+        if norm1 == norm2:
+            return True
+
         # Check for substring match (handles truncated titles)
-        # Only allow if shorter title is at least 60% of the longer title length
-        # This prevents "The NeXus data format" from matching
-        # "The application of the NeXus data format to ISIS muon data"
+        # Only allow if shorter title is at least 50% of the longer title length
+        # This prevents very short titles from matching long titles
         if norm1 in norm2 or norm2 in norm1:
             shorter_len = min(len(norm1), len(norm2))
             longer_len = max(len(norm1), len(norm2))
-            if shorter_len >= longer_len * 0.6:
+            if shorter_len >= longer_len * 0.5:
                 return True
 
         words1 = set(norm1.split())
@@ -1112,16 +1150,26 @@ class PaperRetriever:
             return False
 
         # Check if all words from the shorter title are in the longer title
-        # This handles cases like partial titles, but only if word count is similar
-        # (to prevent matching e.g. "data format" with "new data format system for X")
+        # This handles cases like partial titles
         shorter, longer = (words1, words2) if len(words1) <= len(words2) else (words2, words1)
-        if shorter.issubset(longer) and len(shorter) >= len(longer) * 0.6:
+        if shorter.issubset(longer) and len(shorter) >= len(longer) * 0.5:
             return True
 
-        # Fall back to Jaccard similarity
+        # Jaccard similarity (word-level)
         common = len(words1 & words2)
         total = len(words1 | words2)
-        return common / total >= threshold if total > 0 else False
+        jaccard = common / total if total > 0 else 0.0
+        
+        if jaccard >= threshold:
+            return True
+        
+        # Fuzzy string matching (character-level) as final fallback
+        # Uses Python's difflib for sequence matching
+        from difflib import SequenceMatcher
+        ratio = SequenceMatcher(None, norm1, norm2).ratio()
+        
+        # Use a slightly lower threshold for fuzzy matching since it's more strict
+        return ratio >= (threshold * 0.9)
 
     def _validate_found_doi(self, expected_title: str, found_doi: str, found_title: str = "", found_abstract: str = "") -> tuple[bool, str | None]:
         """Validate that a DOI found during search is appropriate.

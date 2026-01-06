@@ -25,14 +25,25 @@ default_output_format: |
 
   #### Conference Papers
   Papers from academic conferences (NeurIPS, ICML, CVPR, ACL, EMNLP, NAACL, ICLR, etc.)
+  
+  **IMPORTANT:** When citing conference papers, PRIORITIZE OpenReview papers first. OpenReview is the primary platform for major ML/AI conferences (ICLR, NeurIPS, etc.) and provides open access to peer-reviewed papers with discussion threads.
+  
+  For OpenReview papers:
   ```
-  [N] "Title" (Author(s)). Conference Name, Year. DOI: xxx (if available) | URL
+  [N] "Title" (Author(s)). Conference Name, Year. OpenReview: [openreview.net/forum?id=XXX] | DOI: xxx (if available)
+  ```
+  
+  For other conference papers:
+  ```
+  [N] "Title" (Author(s)). Conference Name, Year. DOI: xxx | URL
   ```
 
   #### arXiv & Preprints
   Preprints from arXiv, bioRxiv, SSRN, and other preprint servers
+  
+  **IMPORTANT:** Always include the DOI when available for arXiv papers (many have been assigned DOIs).
   ```
-  [N] "Title" (Author(s)). arXiv:XXXX.XXXXX, Year. URL
+  [N] "Title" (Author(s)). arXiv:XXXX.XXXXX, Year. DOI: xxx (if available) | URL
   ```
 
   #### Blog Posts & Technical Articles
@@ -43,10 +54,12 @@ default_output_format: |
 
   **IMPORTANT:**
   - Put author names in parentheses immediately after the title
-  - Always include the full DOI when available (e.g., DOI: 10.1038/s41586-020-2649-2)
-  - For arXiv papers, include the arXiv ID (e.g., "arXiv:2303.08774")
+  - **Always include the full DOI when available** (e.g., DOI: 10.1038/s41586-020-2649-2)
+  - **For OpenReview papers, include the OpenReview forum URL** (e.g., openreview.net/forum?id=XXX)
+  - For arXiv papers, include the arXiv ID (e.g., "arXiv:2303.08774") **and DOI if available**
   - Use "et al." for papers with 3+ authors
   - Include URLs for all publications
+  - **Prioritize sources in this order:** OpenReview > Peer-reviewed journals > Conference proceedings > arXiv preprints
 
   ### Code & Tools
   GitHub repositories, software packages, frameworks, and development tools.

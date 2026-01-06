@@ -627,7 +627,9 @@ def deploy(db_path: str, port: int, host: str) -> None:
 @click.option("--table", type=str, default="text_chunks", help="Table to search")
 @click.option("-k", "--limit", type=int, default=5, help="Number of results")
 @click.option("--hybrid", is_flag=True, help="Use hybrid search (vector + BM25)")
-def search(db_path: str, query: str, table: str, limit: int, hybrid: bool) -> None:
+@click.option("--text-profile", type=click.Choice(["low", "medium", "high"]), help="Text embedding profile (overrides config)")
+@click.option("--code-profile", type=click.Choice(["low", "high"]), help="Code embedding profile (overrides config)")
+def search(db_path: str, query: str, table: str, limit: int, hybrid: bool, text_profile: str | None, code_profile: str | None) -> None:
     """Test search against the database."""
     from .embedders.ollama import OllamaEmbedder
     from .embedders.profiles import EmbeddingProfiles
@@ -640,10 +642,12 @@ def search(db_path: str, query: str, table: str, limit: int, hybrid: bool) -> No
 
         # Select embedder based on table type
         if table == "code_chunks":
-            profile = EmbeddingProfiles.get_code_profile(config.embedding.code_profile)
+            profile_name = code_profile or config.embedding.code_profile
+            profile = EmbeddingProfiles.get_code_profile(profile_name)
             model_name = profile.ollama_model or "jina-code-embeddings"
         else:
-            profile = EmbeddingProfiles.get_text_profile(config.embedding.text_profile)
+            profile_name = text_profile or config.embedding.text_profile
+            profile = EmbeddingProfiles.get_text_profile(profile_name)
             model_name = profile.ollama_model or "qwen3-embedding:0.6b"
 
         embedder = OllamaEmbedder(model=model_name, host=config.embedding.ollama_host)

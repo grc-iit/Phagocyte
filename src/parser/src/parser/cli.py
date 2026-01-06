@@ -1116,7 +1116,7 @@ def _save_references(refs, grouped, output_dir: Path, output_format: str, prefix
         json_path = output_dir / f"{name_prefix}references.json"
         json_path.write_text(json.dumps([
             {"type": r.type.value, "value": r.value, "title": r.title,
-             "authors": r.authors, "year": r.year, "url": r.url}
+             "authors": r.authors, "year": r.year, "url": r.url, "metadata": r.metadata}
             for r in refs
         ], indent=2))
         click.echo(f"✓ JSON: {json_path}")
@@ -1148,8 +1148,9 @@ def _export_for_batch(refs, output_dir: Path, prefix: str = ""):
     name_prefix = f"{prefix}_" if prefix else ""
     skipped_dois = []  # Track problematic DOIs for reporting
 
-    # First pass: collect all metadata by title (normalized)
+    # First pass: collect all metadata by title (normalized) and PDF URL
     papers_by_title: dict[str, dict] = {}
+    papers_by_pdf_url: dict[str, str] = {}  # Map PDF URL to normalized title
 
     def normalize_title(title: str) -> str:
         """Normalize title for deduplication."""
@@ -1172,6 +1173,11 @@ def _export_for_batch(refs, output_dir: Path, prefix: str = ""):
                 skipped_dois.append({"doi": doi, "title": title, "reason": reason})
                 doi = None  # Don't use this DOI
 
+        # If PDF URL exists, check if we already have this paper under a different title
+        if pdf_url and pdf_url in papers_by_pdf_url:
+            # Merge with existing entry
+            norm_title = papers_by_pdf_url[pdf_url]
+
         if norm_title not in papers_by_title:
             papers_by_title[norm_title] = {
                 "title": title,
@@ -1179,6 +1185,9 @@ def _export_for_batch(refs, output_dir: Path, prefix: str = ""):
                 "pdf_url": None,
                 "arxiv_id": None
             }
+            # Register PDF URL if provided
+            if pdf_url:
+                papers_by_pdf_url[pdf_url] = norm_title
 
         paper = papers_by_title[norm_title]
         # Keep longest/most complete title
@@ -1221,15 +1230,27 @@ def _export_for_batch(refs, output_dir: Path, prefix: str = ""):
             if title:
                 norm_title = normalize_title(title)
                 update_paper(norm_title, title, pdf_url=pdf_url)
-            # Skip PDFs without title (can't merge)
+            else:
+                # Include standalone PDFs with URL as identifier
+                # Extract filename from URL for title
+                import re
+                filename_match = re.search(r'/([^/]+\.pdf)$', pdf_url)
+                if filename_match:
+                    title = filename_match.group(1).replace('.pdf', '').replace('_', ' ').replace('-', ' ')
+                norm_title = pdf_url  # Use URL as unique key
+                update_paper(norm_title, title or pdf_url, pdf_url=pdf_url)
 
         elif ref.type == ReferenceType.PAPER:
             title = ref.title or ref.value
             norm_title = normalize_title(title)
             doi = ref.metadata.get("doi") if ref.metadata else None
-            pdf_url = ref.url if ref.url and ref.url.endswith(".pdf") else None
+            arxiv_id = ref.metadata.get("arxiv_id") if ref.metadata else None
+            pdf_url = ref.metadata.get("pdf_url") if ref.metadata else None
+            # Also check the url field if it's a PDF
+            if not pdf_url and ref.url and ref.url.endswith(".pdf"):
+                pdf_url = ref.url
             if norm_title:
-                update_paper(norm_title, title, doi=doi, pdf_url=pdf_url)
+                update_paper(norm_title, title, doi=doi, pdf_url=pdf_url, arxiv_id=arxiv_id)
 
     # Convert to list, filter out empty entries
     batch_items = []
