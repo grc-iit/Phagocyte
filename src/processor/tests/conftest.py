@@ -1,11 +1,12 @@
 """Pytest configuration and shared fixtures."""
 
-import pytest
 from pathlib import Path
-from typing import Any, Generator
+from typing import Any
 
-from processor.types import Chunk, ContentType, ProcessingResult, ImageChunk
+import pytest
+
 from processor.config import ProcessorConfig
+from processor.types import Chunk, ContentType, ImageChunk
 
 
 @pytest.fixture

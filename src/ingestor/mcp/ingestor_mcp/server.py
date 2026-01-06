@@ -11,7 +11,6 @@ Usage:
     uv run ingestor-mcp
 """
 
-import asyncio
 from pathlib import Path
 from typing import Literal
 
@@ -279,8 +278,9 @@ async def ingest_file(input: IngestInput) -> IngestResult:
         ingest_file(input_path="./paper.pdf", output_dir="./markdown")
         ingest_file(input_path="./presentation.pptx", describe_images=True)
     """
-    from ingestor.core import Router
     from ingestor.output.writer import OutputWriter
+
+    from ingestor.core import Router
     from ingestor.types import IngestConfig
 
     config = IngestConfig(
@@ -342,6 +342,7 @@ async def crawl_website(input: CrawlInput) -> CrawlResult:
         crawl_website(url="https://docs.example.com", max_depth=2, max_pages=100)
     """
     from ingestor.output.writer import OutputWriter
+
     from ingestor.types import IngestConfig, MediaType
 
     config = IngestConfig(
@@ -415,6 +416,7 @@ async def ingest_youtube(input: YouTubeInput) -> YouTubeResult:
         ingest_youtube(url="https://youtube.com/watch?v=...")
     """
     from ingestor.output.writer import OutputWriter
+
     from ingestor.types import IngestConfig, MediaType
 
     config = IngestConfig(
@@ -470,6 +472,7 @@ async def ingest_github(input: GitHubInput) -> GitHubResult:
         ingest_github(url="https://github.com/user/repo", branch="main")
     """
     from ingestor.output.writer import OutputWriter
+
     from ingestor.types import IngestConfig, MediaType
 
     config = IngestConfig(
@@ -532,8 +535,9 @@ async def batch_ingest(input: BatchInput) -> BatchResult:
     Example:
         batch_ingest(input_dir="./documents", recursive=True, concurrency=5)
     """
-    from ingestor.core import Router
     from ingestor.output.writer import OutputWriter
+
+    from ingestor.core import Router
     from ingestor.types import IngestConfig
 
     config = IngestConfig(
@@ -670,6 +674,7 @@ async def clone_repo(input: CloneRepoInput) -> CloneRepoResult:
         clone_repo(repo="https://github.com/user/repo", branch="develop", max_files=200)
     """
     from ingestor.output.writer import OutputWriter
+
     from ingestor.types import IngestConfig
 
     config = IngestConfig(
@@ -829,6 +834,7 @@ async def transcribe_audio(input: AudioTranscribeInput) -> AudioTranscribeResult
         transcribe_audio(input_path="./audio.wav", whisper_model="large", language="en")
     """
     from ingestor.output.writer import OutputWriter
+
     from ingestor.types import IngestConfig, MediaType
 
     config = IngestConfig(

@@ -5,20 +5,20 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from ..parser import ReferenceType, ParsedReference
+from ..parser import ParsedReference, ReferenceType
 
 
 @dataclass
 class AgentParseResult:
     """Result from agent-based parsing."""
-    
+
     references: list[ParsedReference]
     raw_response: str
     model: str
     agent_type: str
     tokens_used: dict[str, int] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -45,7 +45,7 @@ class AgentParseResult:
 
 class AgentParser(ABC):
     """Abstract base class for agent-based reference parsing."""
-    
+
     # System prompt for reference extraction
     SYSTEM_PROMPT = """You are an expert research assistant specialized in extracting and categorizing references from research documents.
 
@@ -131,19 +131,19 @@ Extract ALL references - be comprehensive. Do not miss any URLs."""
         """
         self.api_key = api_key
         self.model = model or self.default_model
-    
+
     @property
     @abstractmethod
     def default_model(self) -> str:
         """Default model for this agent."""
         pass
-    
+
     @property
     @abstractmethod
     def agent_type(self) -> str:
         """Type identifier for this agent."""
         pass
-    
+
     @abstractmethod
     async def parse_async(self, text: str) -> AgentParseResult:
         """Parse text asynchronously and extract references.
@@ -155,7 +155,7 @@ Extract ALL references - be comprehensive. Do not miss any URLs."""
             AgentParseResult with extracted references
         """
         pass
-    
+
     def parse(self, text: str) -> AgentParseResult:
         """Parse text synchronously and extract references.
         
@@ -167,7 +167,7 @@ Extract ALL references - be comprehensive. Do not miss any URLs."""
         """
         import asyncio
         return asyncio.run(self.parse_async(text))
-    
+
     def parse_file(self, file_path: Path) -> AgentParseResult:
         """Parse a file and extract references.
         
@@ -178,7 +178,7 @@ Extract ALL references - be comprehensive. Do not miss any URLs."""
             AgentParseResult with extracted references
         """
         file_path = Path(file_path)
-        
+
         if file_path.suffix == ".json":
             import json
             with open(file_path) as f:
@@ -191,9 +191,9 @@ Extract ALL references - be comprehensive. Do not miss any URLs."""
                 text = str(data)
         else:
             text = file_path.read_text()
-        
+
         return self.parse(str(text))
-    
+
     def _parse_response_json(self, response_text: str) -> list[ParsedReference]:
         """Parse JSON response from agent into ParsedReference list.
         
@@ -205,7 +205,7 @@ Extract ALL references - be comprehensive. Do not miss any URLs."""
         """
         import json
         import re
-        
+
         # Try to extract JSON from the response
         # Look for JSON array in the response
         json_match = re.search(r'\[[\s\S]*\]', response_text)
@@ -218,7 +218,7 @@ Extract ALL references - be comprehensive. Do not miss any URLs."""
                 return []
         else:
             json_str = json_match.group(0)
-        
+
         try:
             data = json.loads(json_str)
         except json.JSONDecodeError:
@@ -228,7 +228,7 @@ Extract ALL references - be comprehensive. Do not miss any URLs."""
                 data = json.loads(json_str)
             except json.JSONDecodeError:
                 return []
-        
+
         references = []
         type_map = {
             "github": ReferenceType.GITHUB,
@@ -242,14 +242,14 @@ Extract ALL references - be comprehensive. Do not miss any URLs."""
             "book": ReferenceType.BOOK,
             "website": ReferenceType.WEBSITE,
         }
-        
+
         for item in data:
             if not isinstance(item, dict):
                 continue
-            
+
             ref_type_str = item.get("type", "website").lower()
             ref_type = type_map.get(ref_type_str, ReferenceType.WEBSITE)
-            
+
             ref = ParsedReference(
                 type=ref_type,
                 value=item.get("value", ""),
@@ -260,8 +260,8 @@ Extract ALL references - be comprehensive. Do not miss any URLs."""
                 context=item.get("context", ""),
                 metadata={"source": "agent", "agent_type": self.agent_type},
             )
-            
+
             if ref.value:  # Only add if value is not empty
                 references.append(ref)
-        
+
         return references

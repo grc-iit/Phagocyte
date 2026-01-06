@@ -1,7 +1,8 @@
 """Integration tests for research flow."""
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 from researcher.deep_research import (
     DeepResearcher,

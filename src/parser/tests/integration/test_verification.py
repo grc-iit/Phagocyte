@@ -1,7 +1,8 @@
 """Integration tests for citation verification."""
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 from parser.doi2bib.verifier import CitationVerifier, parse_bib_file
 

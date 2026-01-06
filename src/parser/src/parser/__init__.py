@@ -48,6 +48,8 @@ from .doi2bib.verifier import (
 )
 from .parser import ParsedReference, ReferenceType, ResearchParser
 from .validation import (
+    ValidationError,
+    ValidationResult,
     classify_doi,
     detect_title_context_mismatch,
     is_problematic_doi,
@@ -55,8 +57,6 @@ from .validation import (
     validate_paper_match,
     validate_reference,
     validate_references,
-    ValidationError,
-    ValidationResult,
 )
 
 __all__ = [

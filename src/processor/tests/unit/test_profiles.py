@@ -1,6 +1,5 @@
 """Unit tests for embedding profiles and backend selection."""
 
-import pytest
 
 from processor.embedders.profiles import (
     EmbedderBackend,

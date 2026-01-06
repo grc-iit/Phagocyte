@@ -1,13 +1,12 @@
 """Unit tests for processor MCP server."""
 
-import pytest
 
 from processor_mcp.server import (
+    DbStats,
+    ExportResult,
     ProcessInput,
     ProcessResult,
     ServiceStatus,
-    DbStats,
-    ExportResult,
     SetupResult,
 )
 
@@ -190,10 +189,10 @@ class TestMCPTools:
     def test_tools_registered(self) -> None:
         """Test key tools are registered."""
         from processor_mcp.server import (
-            process_documents,
             check_services,
-            setup_models,
             get_db_stats,
+            process_documents,
+            setup_models,
         )
 
         assert process_documents is not None

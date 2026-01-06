@@ -128,7 +128,7 @@ class PMCClient(BaseClient):
                         return href
         except Exception:
             pass
-        
+
         # Try OA API without format to get tar.gz (will be handled by download method)
         try:
             async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
@@ -149,7 +149,7 @@ class PMCClient(BaseClient):
             pass
 
         return None
-    
+
     async def download_pdf(self, pmcid: str, output_path) -> bool:
         """Download PDF for a PMCID, handling tar.gz packages.
         
@@ -163,22 +163,22 @@ class PMCClient(BaseClient):
         import io
         import tarfile
         from pathlib import Path
-        
+
         url = await self.get_pdf_url(pmcid)
         if not url:
             return False
-            
+
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Accept": "*/*",
         }
-        
+
         try:
             async with httpx.AsyncClient(timeout=60, follow_redirects=True) as client:
                 response = await client.get(url, headers=headers)
                 response.raise_for_status()
                 content = response.content
-                
+
                 # Check if it's a tar.gz package
                 if url.endswith('.tar.gz') or url.endswith('.tgz'):
                     # Extract PDF from tar.gz
@@ -192,16 +192,16 @@ class PMCClient(BaseClient):
                                     Path(output_path).write_bytes(pdf_content)
                                     return True
                     return False
-                
+
                 # Direct PDF
                 if content.startswith(b'%PDF') or 'pdf' in response.headers.get('content-type', '').lower():
                     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
                     Path(output_path).write_bytes(content)
                     return True
-                    
+
         except Exception:
             pass
-            
+
         return False
 
     async def search_by_title(

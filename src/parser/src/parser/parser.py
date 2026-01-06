@@ -201,7 +201,7 @@ class ResearchParser:
     def _extract_doi(self, text: str) -> list[ParsedReference]:
         """Extract DOIs, with classification for problematic types."""
         from .validation import classify_doi
-        
+
         refs = []
         seen = set()
 
@@ -219,7 +219,7 @@ class ResearchParser:
                 doi = doi.strip()
                 if doi not in seen and doi:
                     seen.add(doi)
-                    
+
                     # Classify the DOI to detect potential issues
                     classification = classify_doi(doi)
                     metadata = {}
@@ -228,7 +228,7 @@ class ResearchParser:
                         metadata["doi_type"] = classification["type"]
                         metadata["publisher"] = classification.get("publisher")
                         metadata["is_paywalled"] = classification.get("is_paywalled", False)
-                    
+
                     refs.append(ParsedReference(
                         type=ReferenceType.DOI,
                         value=doi,
@@ -243,18 +243,18 @@ class ResearchParser:
         """Extract paper citations and blog posts."""
         refs = []
         seen = set()
-        
+
         # Keywords that indicate NOT a paper (videos only)
         non_paper_indicators = [
             'youtube', 'video',
         ]
-        
+
         # Keywords that indicate a documentation/website ref, not an academic paper
         doc_indicators = [
             'user guide', 'documentation', 'readthedocs',
             'api reference', 'getting started',
         ]
-        
+
         # Keywords that indicate a BLOG POST (not academic paper)
         # These are publications without DOIs, typically on blogging platforms
         blog_source_indicators = [
@@ -286,12 +286,12 @@ class ResearchParser:
             authors = match.group(2)
             year = match.group(3)
             context = self._get_context(text, match)
-            
+
             # Skip if context indicates this is a video
             context_lower = context.lower()
             if any(ind in context_lower for ind in non_paper_indicators):
                 continue
-                
+
             if title.lower() not in seen:
                 seen.add(title.lower())
                 refs.append(ParsedReference(
@@ -337,7 +337,7 @@ class ResearchParser:
 
             # Check if this is an academic paper (has "et al" in authors)
             is_academic = 'et al' in authors.lower()
-            
+
             # Only apply doc filter to non-academic refs (no "et al")
             # Academic papers with "schema", "guide" etc in title should be kept
             if not is_academic:
@@ -371,26 +371,26 @@ class ResearchParser:
             title = match.group(2).strip()
             source = match.group(3).strip()
             year = match.group(4)
-            
+
             # Skip if already captured by ref_list_pattern
             if title.lower() in seen:
                 continue
-            
+
             # Skip videos
             context = self._get_context(text, match)
             context_lower = context.lower()
             if any(ind in context_lower for ind in non_paper_indicators):
                 continue
-            
+
             # Skip documentation entries
             title_lower = title.lower()
             if any(ind in title_lower for ind in doc_indicators):
                 continue
-            
+
             # Determine if this is a blog post or paper based on source
             source_lower = source.lower()
             is_blog = any(ind in source_lower for ind in blog_source_indicators)
-            
+
             seen.add(title.lower())
             refs.append(ParsedReference(
                 type=ReferenceType.BLOG if is_blog else ReferenceType.PAPER,
@@ -523,7 +523,7 @@ class ResearchParser:
             'pep 20',
             'pep 484',
         }
-        
+
         # Academic paper keywords - if title contains these, likely a paper not book
         paper_keywords = [
             'attention', 'transformer', 'neural', 'learning', 'deep',
@@ -563,7 +563,7 @@ class ResearchParser:
                 # Skip known non-books
                 if value.lower() in non_books or title.lower() in non_books:
                     continue
-                
+
                 # Skip if title looks like an academic paper
                 title_lower = title.lower() if title else value.lower()
                 if any(kw in title_lower for kw in paper_keywords):
@@ -593,7 +593,7 @@ class ResearchParser:
             'spotify.com', 'podcasts.apple.com', '.pdf',
             'vertexaisearch.cloud.google.com',  # Skip redirect URLs
         ]
-        
+
         # Skip patterns for academic paper hosting sites (papers already extracted as PAPER type)
         academic_skip_patterns = [
             'papers.nips.cc', 'proceedings.neurips.cc', 'openreview.net',
@@ -607,7 +607,7 @@ class ResearchParser:
             'semanticscholar.org/paper',  # Semantic Scholar paper pages
             'openaccess.thecvf.com',  # CVPR/ICCV papers
         ]
-        
+
         def normalize_url(url: str) -> str:
             """Normalize URL for comparison - strip trailing punctuation and closing parens."""
             return url.rstrip('.,;:"\'[])(').rstrip(')')
@@ -617,11 +617,11 @@ class ResearchParser:
         wiki_pattern = r'https?://[^\s\]>]+\([^)]+\)'
         for match in re.finditer(wiki_pattern, text):
             url = match.group(0).rstrip('.,;:"\'[]')
-            
+
             # Skip if matches other types
             if any(skip in url.lower() for skip in skip_patterns):
                 continue
-            
+
             # Skip academic paper hosting sites
             if any(skip in url.lower() for skip in academic_skip_patterns):
                 continue
@@ -639,7 +639,7 @@ class ResearchParser:
                     paren_idx = url.rfind('(')
                     if paren_idx > 0:
                         seen_url_bases.add(url[:paren_idx] + url[paren_idx:].rstrip(')'))
-                
+
                 domain = re.search(r'https?://([^/]+)', url)
                 title = domain.group(1) if domain else url
                 refs.append(ParsedReference(
@@ -658,11 +658,11 @@ class ResearchParser:
             # Skip if matches other types
             if any(skip in url.lower() for skip in skip_patterns):
                 continue
-            
+
             # Skip academic paper hosting sites
             if any(skip in url.lower() for skip in academic_skip_patterns):
                 continue
-            
+
             # Skip if this URL (or normalized version) was already seen
             # This handles Wikipedia URLs where we might match partial URL
             normalized = normalize_url(url)
@@ -704,15 +704,15 @@ class ResearchParser:
 
         for ref in refs:
             key = (ref.type, ref.value.lower())
-            
+
             # Skip if exact same type+value already seen
             if key in seen_by_type:
                 continue
-            
+
             # Skip if URL already seen from another extraction
             if ref.url and ref.url.lower() in seen_urls:
                 continue
-            
+
             seen_by_type.add(key)
             if ref.url:
                 seen_urls.add(ref.url.lower())

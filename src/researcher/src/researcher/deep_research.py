@@ -102,7 +102,7 @@ def _load_prompts_config(config_path: Path | None = None) -> dict:
             try:
                 with open(path) as f:
                     return yaml.safe_load(f) or {}
-            except Exception as e:
+            except Exception:
                 # Continue to next path if loading fails
                 continue
 

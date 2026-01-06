@@ -34,7 +34,6 @@ from .constants import (
 )
 from .scoring import SCORING_ORDER
 from .types import (
-    BottleneckResult,
     Metric,
     RawStats,
     Rule,

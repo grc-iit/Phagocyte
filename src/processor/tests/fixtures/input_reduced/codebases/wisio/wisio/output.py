@@ -37,7 +37,6 @@ from .constants import (
 )
 from .rules import (
     HUMANIZED_KNOWN_RULES,
-    MAX_REASONS,
     BottleneckRule,
     KnownCharacteristics,
 )

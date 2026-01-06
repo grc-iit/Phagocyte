@@ -108,7 +108,7 @@ class LibGenClient:
                 )
                 if result:
                     return result
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 continue
             except Exception:
                 continue
@@ -144,7 +144,7 @@ class LibGenClient:
                 )
                 if result:
                     return result
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 continue
             except Exception:
                 continue

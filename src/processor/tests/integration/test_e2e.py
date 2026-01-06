@@ -1,10 +1,10 @@
 """End-to-end integration tests for processor pipeline."""
 
 import json
-import pytest
 from pathlib import Path
 
 import lancedb
+import pytest
 
 from processor.database.exporter import DatabaseExporter, DatabaseImporter
 

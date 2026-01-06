@@ -3,9 +3,8 @@
 
 import pytest
 
-from tests.conftest import requires_pandas
-
 from ingestor.types import MediaType
+from tests.conftest import requires_pandas
 
 
 @requires_pandas

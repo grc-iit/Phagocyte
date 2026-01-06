@@ -382,7 +382,7 @@ class InstitutionalAccessClient:
             # Collect all cookies from all domains
             all_cookies = driver.get_cookies()
             print(f"\nCollected {len(all_cookies)} cookies")
-            
+
             # Save cookies
             self._selenium_cookies = all_cookies
             self._cookies = {c["name"]: c["value"] for c in self._selenium_cookies}
@@ -444,18 +444,18 @@ class InstitutionalAccessClient:
         # VPN mode - try direct download with httpx
         if self.vpn_enabled:
             import httpx
-            
+
             doi_url = f"https://doi.org/{doi}"
             output_path = Path(output_path) if output_path else self.download_dir / f"{doi.replace('/', '_')}.pdf"
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            
+
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,application/pdf,*/*;q=0.8",
                 "Accept-Language": "en-US,en;q=0.9",
                 "Accept-Encoding": "gzip, deflate, br",
             }
-            
+
             try:
                 async with httpx.AsyncClient(
                     timeout=60.0,
@@ -465,19 +465,19 @@ class InstitutionalAccessClient:
                     # First resolve the DOI to get the publisher URL
                     response = await client.get(doi_url)
                     final_url = str(response.url)
-                    
+
                     # Try to find PDF link on the page
                     pdf_url = self._find_pdf_link(response.text, final_url)
-                    
+
                     if pdf_url:
                         # Download the PDF
                         pdf_response = await client.get(pdf_url)
                         content = pdf_response.content
-                        
+
                         if content.startswith(b"%PDF") and len(content) > 1000:
                             output_path.write_bytes(content)
                             return output_path
-                    
+
                     # Try common PDF URL patterns
                     pdf_patterns = [
                         final_url.replace("/abs/", "/pdf/"),
@@ -485,7 +485,7 @@ class InstitutionalAccessClient:
                         final_url + ".pdf",
                         final_url.replace(".html", ".pdf"),
                     ]
-                    
+
                     for pattern_url in pdf_patterns:
                         if pattern_url != final_url:
                             try:
@@ -496,11 +496,11 @@ class InstitutionalAccessClient:
                                     return output_path
                             except Exception:
                                 continue
-                                
+
             except Exception as e:
                 self._last_error = str(e)
                 return None
-            
+
             return None
 
         # EZProxy mode - use httpx with saved cookies
@@ -521,10 +521,10 @@ class InstitutionalAccessClient:
             Path to downloaded PDF, or None if failed
         """
         import httpx
-        
+
         output_path = Path(output_path) if output_path else self.download_dir / f"{doi.replace('/', '_')}.pdf"
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Convert Selenium cookies to httpx format (strip leading dots from domains)
         cookies = httpx.Cookies()
         for cookie in self._selenium_cookies:
@@ -534,16 +534,16 @@ class InstitutionalAccessClient:
                 cookie["value"],
                 domain=domain,
             )
-        
+
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,application/pdf,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.9",
         }
-        
+
         try:
             proxied_url = self.doi_to_proxied_url(doi)
-            
+
             async with httpx.AsyncClient(
                 timeout=60.0,
                 follow_redirects=True,
@@ -555,24 +555,24 @@ class InstitutionalAccessClient:
                 response = await client.get(proxied_url)
                 final_url = str(response.url)
                 html = response.text
-                
+
                 # Try to find PDF link on the page using meta tag first (most reliable)
                 pdf_url = self._find_pdf_link(html, final_url)
-                
+
                 if pdf_url:
                     # Handle relative URLs
                     if pdf_url.startswith("/"):
                         from urllib.parse import urlparse
                         parsed = urlparse(final_url)
                         pdf_url = f"{parsed.scheme}://{parsed.netloc}{pdf_url}"
-                    
+
                     pdf_response = await client.get(pdf_url)
                     content = pdf_response.content
-                    
+
                     if content.startswith(b"%PDF") and len(content) > 1000:
                         output_path.write_bytes(content)
                         return output_path
-                
+
                 # Try Nature-specific PDF patterns
                 if "nature" in final_url.lower():
                     # Nature uses /articles/xxx.pdf pattern
@@ -593,7 +593,7 @@ class InstitutionalAccessClient:
                                     return output_path
                             except Exception:
                                 continue
-                
+
                 # Try common PDF URL patterns
                 pdf_patterns = [
                     final_url.replace("/abs/", "/pdf/"),
@@ -601,7 +601,7 @@ class InstitutionalAccessClient:
                     final_url + ".pdf",
                     final_url.replace(".html", ".pdf"),
                 ]
-                
+
                 for pattern_url in pdf_patterns:
                     if pattern_url != final_url:
                         try:
@@ -614,13 +614,13 @@ class InstitutionalAccessClient:
                                 return output_path
                         except Exception:
                             continue
-                            
+
         except Exception as e:
             self._last_error = str(e)
             return None
-        
+
         return None
-    
+
     def _find_pdf_link(self, html: str, base_url: str) -> str | None:
         """Find PDF link in HTML page.
         
@@ -633,7 +633,7 @@ class InstitutionalAccessClient:
         """
         import re
         from urllib.parse import urljoin
-        
+
         patterns = [
             r'<a[^>]+href="([^"]+\.pdf[^"]*)"[^>]*>.*?(?:PDF|Download)',
             r'<a[^>]+href="([^"]+)"[^>]*class="[^"]*pdf[^"]*"',
@@ -641,17 +641,15 @@ class InstitutionalAccessClient:
             r'"pdfUrl"\s*:\s*"([^"]+)"',
             r'<meta[^>]+name="citation_pdf_url"[^>]+content="([^"]+)"',
         ]
-        
+
         for pattern in patterns:
             match = re.search(pattern, html, re.IGNORECASE)
             if match:
                 url = match.group(1)
-                if url.startswith("/"):
-                    url = urljoin(base_url, url)
-                elif not url.startswith("http"):
+                if url.startswith("/") or not url.startswith("http"):
                     url = urljoin(base_url, url)
                 return url
-        
+
         return None
 
     def is_authenticated(self) -> bool:

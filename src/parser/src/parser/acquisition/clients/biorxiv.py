@@ -95,10 +95,10 @@ class BioRxivClient(BaseClient):
         result = await self.get_preprint(doi)
         if not result or not result.get("pdf_url"):
             return False
-        
+
         pdf_url = result["pdf_url"]
         output_path = Path(output_path)
-        
+
         # Try httpx first with browser-like headers
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -108,15 +108,15 @@ class BioRxivClient(BaseClient):
             "Connection": "keep-alive",
             "Referer": f"https://www.{result['server']}.org/",
         }
-        
+
         try:
             async with httpx.AsyncClient(timeout=60, follow_redirects=True) as client:
                 response = await client.get(pdf_url, headers=headers)
-                
+
                 if response.status_code == 200:
                     content = response.content
                     content_type = response.headers.get("content-type", "")
-                    
+
                     if "pdf" in content_type.lower() or content.startswith(b"%PDF"):
                         if len(content) > 1000:
                             output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -124,11 +124,11 @@ class BioRxivClient(BaseClient):
                             return True
         except Exception:
             pass
-        
+
         # Fallback to Selenium if enabled
         if self.use_selenium:
             return await self._download_with_selenium(pdf_url, output_path)
-        
+
         return False
 
     async def _download_with_selenium(self, pdf_url: str, output_path: Path) -> bool:
@@ -151,9 +151,9 @@ class BioRxivClient(BaseClient):
             from webdriver_manager.chrome import ChromeDriverManager
         except ImportError:
             return False
-        
+
         loop = asyncio.get_event_loop()
-        
+
         def do_download():
             options = Options()
             options.add_argument("--headless")
@@ -162,7 +162,7 @@ class BioRxivClient(BaseClient):
             options.add_argument("--disable-gpu")
             options.add_argument("--window-size=1920,1080")
             options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-            
+
             # Set up download directory
             download_dir = str(output_path.parent.absolute())
             prefs = {
@@ -172,42 +172,42 @@ class BioRxivClient(BaseClient):
                 "plugins.always_open_pdf_externally": True,
             }
             options.add_experimental_option("prefs", prefs)
-            
+
             driver = None
             try:
                 service = Service(ChromeDriverManager().install())
                 driver = webdriver.Chrome(service=service, options=options)
                 driver.set_page_load_timeout(60)
-                
+
                 # Navigate to PDF URL
                 driver.get(pdf_url)
-                
+
                 # Wait for potential CloudFlare challenge
                 time.sleep(5)
-                
+
                 # Check if we're on a CloudFlare page
                 page_source = driver.page_source.lower()
                 if "cloudflare" in page_source or "checking your browser" in page_source:
                     # Wait longer for CloudFlare to resolve
                     time.sleep(10)
-                
+
                 # Try to get PDF content
                 # bioRxiv might redirect or show inline PDF
                 current_url = driver.current_url
-                
+
                 if ".pdf" in current_url:
                     # Direct PDF - use requests with cookies
                     cookies = {c['name']: c['value'] for c in driver.get_cookies()}
-                    
+
                     import requests
                     session = requests.Session()
                     for name, value in cookies.items():
                         session.cookies.set(name, value)
-                    
+
                     response = session.get(pdf_url, headers={
                         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
                     }, timeout=60)
-                    
+
                     if response.status_code == 200 and (
                         "pdf" in response.headers.get("content-type", "").lower() or
                         response.content.startswith(b"%PDF")
@@ -215,7 +215,7 @@ class BioRxivClient(BaseClient):
                         output_path.parent.mkdir(parents=True, exist_ok=True)
                         output_path.write_bytes(response.content)
                         return True
-                
+
                 # Check for downloaded file in download directory
                 time.sleep(3)
                 for f in Path(download_dir).glob("*.pdf"):
@@ -223,9 +223,9 @@ class BioRxivClient(BaseClient):
                         if f != output_path:
                             f.rename(output_path)
                         return True
-                
+
                 return False
-                
+
             except Exception:
                 return False
             finally:
@@ -234,7 +234,7 @@ class BioRxivClient(BaseClient):
                         driver.quit()
                     except Exception:
                         pass
-        
+
         return await loop.run_in_executor(None, do_download)
 
     async def get_pdf_url(self, doi: str) -> str | None:

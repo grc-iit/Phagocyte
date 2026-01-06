@@ -316,7 +316,7 @@ async def batch_retrieve(input: BatchInput) -> BatchResult:
         )
 
     items = _load_batch_file(input_path)
-    
+
     results = []
     succeeded = 0
     failed = 0
@@ -330,7 +330,7 @@ async def batch_retrieve(input: BatchInput) -> BatchResult:
         async with semaphore:
             doi = item.get("doi")
             title = item.get("title")
-            
+
             try:
                 result = await retriever.retrieve(
                     doi=doi,
@@ -338,7 +338,7 @@ async def batch_retrieve(input: BatchInput) -> BatchResult:
                     output_dir=output_dir,
                     verbose=input.verbose,
                 )
-                
+
                 if result.status == RetrievalStatus.SUCCESS:
                     succeeded += 1
                     return {"identifier": doi or title, "status": "success", "path": str(result.pdf_path)}
@@ -464,7 +464,7 @@ async def parse_references(input: ParseRefsInput) -> ParseRefsResult:
         # Export batch file
         if input.export_batch:
             batch_path = output_dir / "batch.json"
-            batch_items = [{"doi": r.get("doi"), "title": r.get("title")} 
+            batch_items = [{"doi": r.get("doi"), "title": r.get("title")}
                           for r in references if r.get("doi") or r.get("title")]
             with open(batch_path, "w") as f:
                 json.dump(batch_items, f, indent=2)
@@ -756,17 +756,17 @@ async def get_citations(input: CitationsInput) -> CitationsResult:
 def _parse_identifier(identifier: str) -> tuple[str | None, str | None]:
     """Parse identifier to determine if it's a DOI or title."""
     import re
-    
+
     # Check for DOI pattern
     doi_pattern = r"^10\.\d{4,}/[^\s]+"
     if re.match(doi_pattern, identifier):
         return identifier, None
-    
+
     # Check for arXiv pattern
     arxiv_pattern = r"^(arXiv:)?(\d{4}\.\d{4,}|[a-z-]+/\d{7})"
     if re.match(arxiv_pattern, identifier, re.IGNORECASE):
         return identifier, None
-    
+
     # Assume it's a title
     return None, identifier
 
@@ -774,23 +774,23 @@ def _parse_identifier(identifier: str) -> tuple[str | None, str | None]:
 def _load_batch_file(path: Path) -> list[dict]:
     """Load batch file in various formats."""
     import json
-    
+
     content = path.read_text(encoding="utf-8")
-    
+
     # Try JSON
     if path.suffix == ".json":
         data = json.loads(content)
         if isinstance(data, list):
             return data
         return [data]
-    
+
     # Try CSV
     if path.suffix == ".csv":
         import csv
         from io import StringIO
         reader = csv.DictReader(StringIO(content))
         return list(reader)
-    
+
     # Plain text (one identifier per line)
     lines = [line.strip() for line in content.splitlines() if line.strip()]
     items = []
@@ -803,10 +803,10 @@ def _load_batch_file(path: Path) -> list[dict]:
 def _references_to_markdown(references: list[dict]) -> str:
     """Convert references to Markdown format."""
     lines = ["# Extracted References\n"]
-    
+
     for i, ref in enumerate(references, 1):
         lines.append(f"## {i}. {ref.get('title', 'Unknown Title')}\n")
-        
+
         if ref.get("authors"):
             lines.append(f"**Authors:** {ref['authors']}\n")
         if ref.get("year"):
@@ -817,9 +817,9 @@ def _references_to_markdown(references: list[dict]) -> str:
             lines.append(f"**arXiv:** [{ref['arxiv_id']}](https://arxiv.org/abs/{ref['arxiv_id']})\n")
         if ref.get("url"):
             lines.append(f"**URL:** {ref['url']}\n")
-        
+
         lines.append("")
-    
+
     return "\n".join(lines)
 
 

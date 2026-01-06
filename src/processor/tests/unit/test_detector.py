@@ -1,13 +1,14 @@
 """Unit tests for content detector and file filtering."""
 
-import pytest
 from pathlib import Path
 
+import pytest
+
 from processor.core.detector import (
-    ContentDetector,
-    SKIP_PATTERNS,
-    SKIP_EXTENSIONS,
     SKIP_DIRECTORIES,
+    SKIP_EXTENSIONS,
+    SKIP_PATTERNS,
+    ContentDetector,
 )
 from processor.types import ContentType
 

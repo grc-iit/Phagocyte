@@ -1,14 +1,13 @@
 """Unit tests for RAG MCP server."""
 
-import pytest
 
 from rag_mcp.server import (
-    SearchInput,
-    SearchResult,
-    SearchResponse,
     ImageSearchResult,
-    TableInfo,
     ListTablesResponse,
+    SearchInput,
+    SearchResponse,
+    SearchResult,
+    TableInfo,
 )
 
 
@@ -213,9 +212,9 @@ class TestMCPTools:
     def test_tools_registered(self) -> None:
         """Test key tools are registered."""
         from rag_mcp.server import (
+            list_tables,
             search,
             search_images,
-            list_tables,
         )
 
         assert search is not None

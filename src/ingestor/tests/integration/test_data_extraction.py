@@ -2,10 +2,9 @@
 
 import pytest
 
-from tests.conftest import requires_pandas
-
 from ingestor.extractors.data import JsonExtractor
 from ingestor.types import MediaType
+from tests.conftest import requires_pandas
 
 # Check if defusedxml is available
 try:

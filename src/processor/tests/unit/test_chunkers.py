@@ -1,6 +1,5 @@
 """Unit tests for chunker adapters."""
 
-import pytest
 from pathlib import Path
 
 from processor.chunkers.adapters import (

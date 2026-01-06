@@ -1,9 +1,10 @@
 """Integration tests for paper retrieval."""
 
-import pytest
 from pathlib import Path
 
-from parser.acquisition.downloader import PaperDownloader, DownloadConfig
+import pytest
+
+from parser.acquisition.downloader import DownloadConfig, PaperDownloader
 from parser.acquisition.retriever import PaperRetriever, RetrievalStatus
 
 

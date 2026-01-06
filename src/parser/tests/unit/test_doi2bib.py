@@ -1,13 +1,12 @@
 """Unit tests for DOI to BibTeX module."""
 
-import pytest
 
+from parser.doi2bib.metadata import Author, PaperMetadata
 from parser.doi2bib.resolver import (
-    PaperIdentifier,
     IdentifierType,
+    PaperIdentifier,
     resolve_identifier,
 )
-from parser.doi2bib.metadata import Author, PaperMetadata
 
 
 class TestIdentifierType:

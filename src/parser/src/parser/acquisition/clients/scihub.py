@@ -200,7 +200,7 @@ class ScihubClient:
                 else:
                     output_path.unlink(missing_ok=True)
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             # scidownl timed out
             pass
         except Exception:
@@ -232,7 +232,7 @@ class ScihubClient:
                     )
                     if result:
                         return result
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     break  # Move to next mirror
                 except Exception:
                     await asyncio.sleep(1)

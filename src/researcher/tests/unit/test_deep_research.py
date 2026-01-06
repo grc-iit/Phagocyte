@@ -1,15 +1,16 @@
 """Unit tests for deep research module."""
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 from researcher.deep_research import (
     DeepResearcher,
     ResearchConfig,
     ResearchMode,
     ResearchStatus,
-    _post_process_report,
     _load_prompts_config,
+    _post_process_report,
 )
 
 

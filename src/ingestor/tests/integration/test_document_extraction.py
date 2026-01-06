@@ -3,10 +3,9 @@
 
 import pytest
 
-from tests.conftest import requires_pptx
-
 from ingestor.extractors.text import TxtExtractor
 from ingestor.types import MediaType
+from tests.conftest import requires_pptx
 
 
 class TestTxtExtraction:

@@ -1,12 +1,13 @@
 """Unit tests for image processing module."""
 
 import json
-import pytest
 from pathlib import Path
 from typing import Any
 
-from processor.types import ImageChunk, ImageProcessingResult, ContentType
+import pytest
+
 from processor.images.processor import ImageProcessor
+from processor.types import ImageChunk, ImageProcessingResult
 
 
 class TestImageChunk:

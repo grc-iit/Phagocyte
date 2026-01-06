@@ -5,7 +5,6 @@ Supports vector search, hybrid search, and table listing.
 """
 
 import os
-from typing import Any, Optional
 
 import lancedb
 from fastapi import FastAPI, HTTPException
@@ -28,7 +27,7 @@ app.add_middleware(
 
 # Database connection
 DB_PATH = os.environ.get("LANCEDB_PATH", "/data")
-db: Optional[lancedb.DBConnection] = None
+db: lancedb.DBConnection | None = None
 
 
 def get_db() -> lancedb.DBConnection:
@@ -43,7 +42,7 @@ class SearchRequest(BaseModel):
     """Search request body."""
     query_vector: list[float]
     limit: int = 10
-    filter: Optional[str] = None
+    filter: str | None = None
 
 
 class HybridSearchRequest(BaseModel):
@@ -51,7 +50,7 @@ class HybridSearchRequest(BaseModel):
     query_vector: list[float]
     query_text: str
     limit: int = 10
-    filter: Optional[str] = None
+    filter: str | None = None
 
 
 class TextSearchRequest(BaseModel):

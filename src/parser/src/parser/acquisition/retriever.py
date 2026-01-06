@@ -324,7 +324,7 @@ class PaperRetriever:
         4. PDF URL (stored in metadata for direct download attempts)
         """
         from ..validation import classify_doi
-        
+
         # Extract arXiv ID from various formats
         if doi:
             if doi.startswith("arXiv:"):
@@ -334,7 +334,7 @@ class PaperRetriever:
                 # arXiv DOI format: 10.48550/arXiv.YYMM.NNNNN
                 arxiv_id = doi.replace("10.48550/arXiv.", "")
                 # Keep the DOI too for CrossRef lookup
-        
+
         # Also extract arXiv ID from PDF URL if present
         if pdf_url and not arxiv_id:
             arxiv_match = re.search(r"arxiv\.org/(?:abs|pdf)/([\d.]+)", pdf_url)
@@ -698,21 +698,21 @@ class PaperRetriever:
         3. Title search (search arXiv by title with strict matching)
         """
         arxiv_id = None
-        
+
         # 1. Extract arXiv ID from DOI (e.g., 10.48550/arXiv.1706.03762)
         if doi and "arxiv" in doi.lower():
             logger.detail(f"arXiv DOI detected: {doi}")
             match = re.search(r"arxiv\.(\d+\.\d+)", doi.lower())
             if match:
                 arxiv_id = match.group(1)
-        
+
         # 2. Check if title contains arXiv URL (e.g., "https://arxiv.org/abs/1706.03762")
         if not arxiv_id and title:
             url_match = re.search(r"arxiv\.org/(?:abs|pdf)/([\d.]+)", title)
             if url_match:
                 arxiv_id = url_match.group(1)
                 logger.detail(f"arXiv URL detected in title: {arxiv_id}")
-        
+
         # Try direct download if we have an arXiv ID
         if arxiv_id:
             pdf_url = f"https://arxiv.org/pdf/{arxiv_id}.pdf"
@@ -757,7 +757,7 @@ class PaperRetriever:
             return None, "no PMC ID for this DOI"
 
         logger.detail(f"Found PMC ID: {pmcid}")
-        
+
         # Use PMC client's download_pdf method which handles tar.gz packages
         if await client.download_pdf(pmcid, output_path):
             return RetrievalResult(
@@ -774,7 +774,7 @@ class PaperRetriever:
             return None, "not a bioRxiv DOI"
 
         logger.detail(f"Checking bioRxiv for {doi}")
-        
+
         # Use the client's download_pdf method which has Selenium fallback
         if await client.download_pdf(doi, output_path):
             return RetrievalResult(
@@ -790,13 +790,13 @@ class PaperRetriever:
         """
         if not doi:
             return None, "no DOI provided"
-        
+
         if not client.is_frontiers_doi(doi):
             return None, "not a Frontiers DOI"
-        
+
         logger.detail(f"Frontiers DOI detected: {doi}")
         result = await client.download_by_doi(doi, output_path)
-        
+
         if result and result.get("pdf_path"):
             return RetrievalResult(
                 doi=doi, title=title, status=RetrievalStatus.SUCCESS,
@@ -824,18 +824,18 @@ class PaperRetriever:
             for r in results:
                 found_doi = r.get("doi")
                 found_title = r.get("title", "")
-                
+
                 # Validate title match
                 if not self._titles_match(title, found_title):
                     continue
-                    
+
                 # Validate DOI if present
                 if found_doi:
                     is_valid, rejection_reason = self._validate_found_doi(title, found_doi, found_title, r.get("abstract", ""))
                     if not is_valid:
                         logger.detail(f"Skipping DOI {found_doi}: {rejection_reason}")
                         continue
-                
+
                 if r.get("pdf_url"):
                     result = r
                     break
@@ -861,14 +861,14 @@ class PaperRetriever:
         """
         if not doi:
             return None, "no DOI provided"
-        
+
         # Check if it's an ACL DOI
         if not client.is_acl_doi(doi):
             return None, "not an ACL DOI"
-        
+
         logger.detail(f"ACL Anthology DOI detected: {doi}")
         result = await client.download_by_doi(doi, output_path)
-        
+
         if result and result.get("pdf_path"):
             return RetrievalResult(
                 doi=doi, title=title, status=RetrievalStatus.SUCCESS,
@@ -896,18 +896,18 @@ class PaperRetriever:
             for r in results:
                 found_title = r.get("title", "")
                 found_doi = r.get("doi")
-                
+
                 # Validate title match
                 if not self._titles_match(title, found_title):
                     continue
-                
+
                 # Validate DOI if present
                 if found_doi:
                     is_valid, rejection_reason = self._validate_found_doi(title, found_doi, found_title)
                     if not is_valid:
                         logger.detail(f"Skipping result: {rejection_reason}")
                         continue
-                
+
                 result = r
                 break
 
@@ -1030,7 +1030,7 @@ class PaperRetriever:
 
         # Priority: title first (better hit rate for some papers)
         lookup_priority = self.config.download.get("lookup_priority", ["title", "doi"])
-        
+
         for method in lookup_priority:
             if result:
                 break
@@ -1058,7 +1058,7 @@ class PaperRetriever:
 
         # Priority: title first (better hit rate for some papers)
         lookup_priority = self.config.download.get("lookup_priority", ["title", "doi"])
-        
+
         for method in lookup_priority:
             if result:
                 break
@@ -1100,7 +1100,7 @@ class PaperRetriever:
 
         # Check for substring match (handles truncated titles)
         # Only allow if shorter title is at least 60% of the longer title length
-        # This prevents "The NeXus data format" from matching 
+        # This prevents "The NeXus data format" from matching
         # "The application of the NeXus data format to ISIS muon data"
         if norm1 in norm2 or norm2 in norm1:
             shorter_len = min(len(norm1), len(norm2))
@@ -1144,12 +1144,12 @@ class PaperRetriever:
             Tuple of (is_valid, rejection_reason)
         """
         from ..validation import classify_doi, detect_title_context_mismatch
-        
+
         # Check DOI classification
         classification = classify_doi(found_doi)
         if classification.get("type") in ("review", "book_chapter", "dataset"):
             return False, f"Rejected: {classification.get('warning', 'problematic DOI type')}"
-        
+
         # Check title context mismatch (catches "llama" animal vs "LLaMA" AI)
         if found_title:
             is_mismatch, reason = detect_title_context_mismatch(
@@ -1157,7 +1157,7 @@ class PaperRetriever:
             )
             if is_mismatch:
                 return False, f"Rejected: {reason}"
-        
+
         return True, None
 
     async def _download_pdf(self, url: str, output_path: Path) -> bool:
@@ -1171,7 +1171,7 @@ class PaperRetriever:
             "Connection": "keep-alive",
             "Referer": url.split("/content/")[0] + "/" if "/content/" in url else url,
         }
-        
+
         try:
             async with httpx.AsyncClient(follow_redirects=True, timeout=60) as client:
                 response = await client.get(url, headers=headers)

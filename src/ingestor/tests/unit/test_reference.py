@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.conftest import HAS_PANDAS, HAS_PPTX, requires_pandas, requires_pptx
+from tests.conftest import HAS_PANDAS, requires_pandas, requires_pptx
 
 # Conditional imports
 if HAS_PANDAS:

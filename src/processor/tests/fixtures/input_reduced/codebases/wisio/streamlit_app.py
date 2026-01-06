@@ -2,7 +2,6 @@ import altair as alt
 import dask
 import shutil
 import streamlit as st
-import numpy as np
 import pandas as pd
 import tempfile
 from wisio import init_with_hydra

@@ -1,11 +1,12 @@
 """Integration tests for paper processing with images."""
 
 import json
-import pytest
 from pathlib import Path
 
-from processor.images.processor import ImageProcessor
+import pytest
+
 from processor.core.detector import ContentDetector
+from processor.images.processor import ImageProcessor
 from processor.types import ContentType
 
 

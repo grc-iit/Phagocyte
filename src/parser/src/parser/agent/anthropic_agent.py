@@ -6,7 +6,6 @@ Two modes available:
 """
 
 import os
-from typing import Any
 
 from .base import AgentParser, AgentParseResult
 
@@ -18,17 +17,17 @@ class AnthropicAgent(AgentParser):
     - claude-agent-sdk: No API key needed (uses Claude Code CLI)
     - anthropic: Requires API key
     """
-    
+
     @property
     def default_model(self) -> str:
         """Default Claude model."""
         return "claude-sonnet-4-20250514"
-    
+
     @property
     def agent_type(self) -> str:
         """Agent type identifier."""
         return "anthropic"
-    
+
     def __init__(
         self,
         api_key: str | None = None,
@@ -45,7 +44,7 @@ class AnthropicAgent(AgentParser):
         """
         super().__init__(api_key, model)
         self.use_agent_sdk = use_agent_sdk
-        
+
         # Check for API key only if not using agent SDK
         if not use_agent_sdk:
             self.api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
@@ -55,7 +54,7 @@ class AnthropicAgent(AgentParser):
                     "Set ANTHROPIC_API_KEY environment variable or pass api_key parameter. "
                     "Alternatively, use use_agent_sdk=True (no API key needed)."
                 )
-    
+
     async def parse_async(self, text: str) -> AgentParseResult:
         """Parse text using Claude asynchronously.
         
@@ -69,17 +68,17 @@ class AnthropicAgent(AgentParser):
             return await self._parse_with_agent_sdk(text)
         else:
             return await self._parse_with_anthropic_sdk(text)
-    
+
     async def _parse_with_agent_sdk(self, text: str) -> AgentParseResult:
         """Parse using claude-agent-sdk (no API key needed)."""
         try:
-            from claude_agent_sdk import query, ClaudeAgentOptions, AssistantMessage, TextBlock
+            from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, TextBlock, query
         except ImportError:
             raise ImportError(
                 "claude-agent-sdk package not installed. Install with: "
                 "pip install claude-agent-sdk"
             )
-        
+
         user_message = f"""{self.SYSTEM_PROMPT}
 
 ---
@@ -97,17 +96,17 @@ Now extract ALL references from the document above and return them as a JSON arr
         options = ClaudeAgentOptions(
             max_turns=1,
         )
-        
+
         response_text = ""
         async for message in query(prompt=user_message, options=options):
             if isinstance(message, AssistantMessage):
                 for block in message.content:
                     if isinstance(block, TextBlock):
                         response_text += block.text
-        
+
         # Parse references from response
         references = self._parse_response_json(response_text)
-        
+
         return AgentParseResult(
             references=references,
             raw_response=response_text,
@@ -116,7 +115,7 @@ Now extract ALL references from the document above and return them as a JSON arr
             tokens_used={},  # SDK doesn't expose token counts
             metadata={"backend": "claude-agent-sdk"}
         )
-    
+
     async def _parse_with_anthropic_sdk(self, text: str) -> AgentParseResult:
         """Parse using direct anthropic SDK (requires API key)."""
         try:
@@ -125,9 +124,9 @@ Now extract ALL references from the document above and return them as a JSON arr
             raise ImportError(
                 "anthropic package not installed. Install with: pip install anthropic"
             )
-        
+
         client = AsyncAnthropic(api_key=self.api_key)
-        
+
         message = await client.messages.create(
             model=self.model,
             max_tokens=8192,
@@ -139,14 +138,14 @@ Now extract ALL references from the document above and return them as a JSON arr
                 }
             ]
         )
-        
+
         response_text = ""
         for block in message.content:
             if hasattr(block, "text"):
                 response_text += block.text
-        
+
         references = self._parse_response_json(response_text)
-        
+
         return AgentParseResult(
             references=references,
             raw_response=response_text,
@@ -162,7 +161,7 @@ Now extract ALL references from the document above and return them as a JSON arr
                 "backend": "anthropic-sdk",
             }
         )
-    
+
     def parse(self, text: str) -> AgentParseResult:
         """Parse text using Claude synchronously.
         
@@ -176,7 +175,7 @@ Now extract ALL references from the document above and return them as a JSON arr
             return self._parse_sync_with_agent_sdk(text)
         else:
             return self._parse_sync_with_anthropic_sdk(text)
-    
+
     def _parse_sync_with_agent_sdk(self, text: str) -> AgentParseResult:
         """Parse using claude-agent-sdk synchronously.
         
@@ -187,16 +186,16 @@ Now extract ALL references from the document above and return them as a JSON arr
             return asyncio.run(self._parse_with_agent_sdk(text))
         except Exception as e:
             error_msg = str(e)
-            
+
             # Check for rate limit error
             if "exit code 1" in error_msg.lower() or "rate limit" in error_msg.lower():
-                print(f"\n⚠️  Claude CLI rate limit may have been hit.")
+                print("\n⚠️  Claude CLI rate limit may have been hit.")
                 print("    Check with: claude auth status")
-            
+
             # Agent SDK failed, try falling back to direct API
             api_key = os.environ.get("ANTHROPIC_API_KEY")
             if api_key:
-                print(f"Claude Agent SDK failed, falling back to direct Anthropic API...")
+                print("Claude Agent SDK failed, falling back to direct Anthropic API...")
                 self.api_key = api_key
                 return self._parse_sync_with_anthropic_sdk(text)
             else:
@@ -209,7 +208,7 @@ Now extract ALL references from the document above and return them as a JSON arr
                     "  3. Network issues\n\n"
                     "To use direct API fallback, set ANTHROPIC_API_KEY environment variable."
                 ) from e
-    
+
     def _parse_sync_with_anthropic_sdk(self, text: str) -> AgentParseResult:
         """Parse using direct anthropic SDK synchronously."""
         try:
@@ -218,9 +217,9 @@ Now extract ALL references from the document above and return them as a JSON arr
             raise ImportError(
                 "anthropic package not installed. Install with: pip install anthropic"
             )
-        
+
         client = Anthropic(api_key=self.api_key)
-        
+
         message = client.messages.create(
             model=self.model,
             max_tokens=8192,
@@ -232,14 +231,14 @@ Now extract ALL references from the document above and return them as a JSON arr
                 }
             ]
         )
-        
+
         response_text = ""
         for block in message.content:
             if hasattr(block, "text"):
                 response_text += block.text
-        
+
         references = self._parse_response_json(response_text)
-        
+
         return AgentParseResult(
             references=references,
             raw_response=response_text,

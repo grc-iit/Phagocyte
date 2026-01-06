@@ -131,14 +131,15 @@ async def deep_research(input: ResearchInput) -> ResearchResult:
         deep_research(query="Compare architectures", mode="directed", artifacts=["https://arxiv.org/..."])
     """
     import time
+
     from dotenv import load_dotenv
-    
+
     load_dotenv()
-    
+
     from researcher.deep_research import DeepResearcher, ResearchConfig, ResearchMode
 
     start_time = time.time()
-    
+
     # Get API key
     api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
     if not api_key:
@@ -213,16 +214,16 @@ async def check_api_key() -> ApiKeyStatus:
     """
     from dotenv import load_dotenv
     load_dotenv()
-    
+
     gemini_key = os.environ.get("GEMINI_API_KEY")
     google_key = os.environ.get("GOOGLE_API_KEY")
-    
+
     key_source = None
     if gemini_key:
         key_source = "GEMINI_API_KEY"
     elif google_key:
         key_source = "GOOGLE_API_KEY"
-    
+
     return ApiKeyStatus(
         gemini_key_set=bool(gemini_key),
         google_key_set=bool(google_key),
@@ -244,16 +245,16 @@ async def list_research_outputs(output_dir: str = "./output") -> dict:
         Dictionary with found outputs organized by research session
     """
     output_path = Path(output_dir)
-    
+
     if not output_path.exists():
         return {"error": f"Directory not found: {output_dir}", "sessions": []}
-    
+
     sessions = []
-    
+
     # Look for research subdirectory
     research_dir = output_path / "research"
     search_dirs = [research_dir, output_path] if research_dir.exists() else [output_path]
-    
+
     for search_dir in search_dirs:
         # Find all report files
         for report_file in search_dir.glob("**/research_report.md"):
@@ -264,7 +265,7 @@ async def list_research_outputs(output_dir: str = "./output") -> dict:
                 "metadata": None,
                 "thinking": None,
             }
-            
+
             metadata_file = session_dir / "research_metadata.json"
             if metadata_file.exists():
                 session["metadata"] = str(metadata_file)
@@ -277,13 +278,13 @@ async def list_research_outputs(output_dir: str = "./output") -> dict:
                         session["timestamp"] = meta.get("timestamp", "Unknown")
                 except Exception:
                     pass
-            
+
             thinking_file = session_dir / "thinking_steps.md"
             if thinking_file.exists():
                 session["thinking"] = str(thinking_file)
-            
+
             sessions.append(session)
-    
+
     return {
         "output_dir": str(output_path),
         "sessions": sessions,

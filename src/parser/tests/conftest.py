@@ -1,9 +1,8 @@
 """Pytest configuration and shared fixtures for parser tests."""
 
-import pytest
 from pathlib import Path
-from typing import Generator
 
+import pytest
 
 # ============================================================================
 # Path Fixtures

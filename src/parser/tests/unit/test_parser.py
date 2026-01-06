@@ -1,9 +1,10 @@
 """Unit tests for reference parser."""
 
-import pytest
 from pathlib import Path
 
-from parser.parser import ResearchParser, ParsedReference, ReferenceType
+import pytest
+
+from parser.parser import ParsedReference, ReferenceType, ResearchParser
 
 
 class TestReferenceType:

@@ -1,12 +1,10 @@
 """Unit tests for researcher MCP server."""
 
-import pytest
-import os
 
 from researcher_mcp.server import (
+    ApiKeyStatus,
     ResearchInput,
     ResearchResult,
-    ApiKeyStatus,
 )
 
 

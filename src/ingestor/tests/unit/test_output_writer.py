@@ -3,8 +3,8 @@
 import json
 
 import pytest
-
 from ingestor.output.writer import OutputWriter, OutputWriterSync
+
 from ingestor.types import ExtractedImage, ExtractionResult, IngestConfig, MediaType
 
 

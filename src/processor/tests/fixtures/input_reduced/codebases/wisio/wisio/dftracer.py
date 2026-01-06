@@ -338,7 +338,7 @@ class DFTracerAnalyzer(Analyzer):
             else:
                 logging.warning(f"Ignoring unsuported file {file}")
         if len(all_files) == 0:
-            logging.error(f"No files selected for .pfw and .pfw.gz")
+            logging.error("No files selected for .pfw and .pfw.gz")
             exit(1)
         logging.debug(f"Processing files {all_files}")
         delayed_indices = []

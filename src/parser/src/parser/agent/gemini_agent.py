@@ -6,7 +6,6 @@ Two modes available:
 """
 
 import os
-from typing import Any
 
 from .base import AgentParser, AgentParseResult
 
@@ -18,17 +17,17 @@ class GeminiAgent(AgentParser):
     - google-adk: Uses ADK framework (recommended)
     - google-generativeai: Direct API access
     """
-    
+
     @property
     def default_model(self) -> str:
         """Default Gemini model."""
         return "gemini-2.0-flash"
-    
+
     @property
     def agent_type(self) -> str:
         """Agent type identifier."""
         return "gemini"
-    
+
     def __init__(
         self,
         api_key: str | None = None,
@@ -45,14 +44,14 @@ class GeminiAgent(AgentParser):
         super().__init__(api_key, model)
         self.use_adk = use_adk
         self.api_key = api_key or os.environ.get("GOOGLE_API_KEY")
-        
+
         # API key is needed for both modes currently
         if not self.api_key:
             raise ValueError(
                 "Google API key required. Set GOOGLE_API_KEY environment variable "
                 "or pass api_key parameter. Get one at: https://aistudio.google.com/apikey"
             )
-    
+
     async def parse_async(self, text: str) -> AgentParseResult:
         """Parse text using Gemini asynchronously.
         
@@ -66,7 +65,7 @@ class GeminiAgent(AgentParser):
             return await self._parse_with_adk(text)
         else:
             return await self._parse_with_genai(text)
-    
+
     async def _parse_with_adk(self, text: str) -> AgentParseResult:
         """Parse using google-adk (Agent Development Kit)."""
         try:
@@ -77,11 +76,11 @@ class GeminiAgent(AgentParser):
             raise ImportError(
                 "google-adk package not installed. Install with: pip install google-adk"
             )
-        
+
         # Set up environment for ADK
         os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "FALSE"
         os.environ["GOOGLE_API_KEY"] = self.api_key
-        
+
         # Create the agent
         agent = Agent(
             name="reference_parser",
@@ -89,16 +88,16 @@ class GeminiAgent(AgentParser):
             description="Agent to extract and categorize references from research documents.",
             instruction=self.SYSTEM_PROMPT,
         )
-        
+
         # Create runner and execute
         runner = Runner(agent=agent, app_name="parser_app")
         session = await runner.session_service.create_session(
             app_name="parser_app",
             user_id="parser_user",
         )
-        
+
         user_message = f"Please extract and categorize all references from the following research document:\n\n---\n\n{text}\n\n---\n\nReturn the references as a JSON array."
-        
+
         response_text = ""
         async for event in runner.run_async(
             user_id="parser_user",
@@ -112,10 +111,10 @@ class GeminiAgent(AgentParser):
                 for part in event.content.parts:
                     if hasattr(part, 'text'):
                         response_text += part.text
-        
+
         # Parse references from response
         references = self._parse_response_json(response_text)
-        
+
         return AgentParseResult(
             references=references,
             raw_response=response_text,
@@ -127,7 +126,7 @@ class GeminiAgent(AgentParser):
                 "backend": "google-adk",
             }
         )
-    
+
     async def _parse_with_genai(self, text: str) -> AgentParseResult:
         """Parse using google-genai directly."""
         try:
@@ -138,23 +137,23 @@ class GeminiAgent(AgentParser):
                 "google-genai package not installed. Install with: "
                 "pip install google-genai"
             )
-        
+
         # Create client
         client = genai.Client(api_key=self.api_key)
-        
+
         user_message = f"{self.SYSTEM_PROMPT}\n\nPlease extract and categorize all references from the following research document:\n\n---\n\n{text}\n\n---\n\nReturn the references as a JSON array."
-        
+
         # Generate response
         response = await client.aio.models.generate_content(
             model=self.model,
             contents=user_message,
         )
-        
+
         response_text = response.text if hasattr(response, 'text') else str(response)
-        
+
         # Parse references from response
         references = self._parse_response_json(response_text)
-        
+
         # Extract token usage if available
         tokens_used = {}
         if hasattr(response, 'usage_metadata'):
@@ -163,7 +162,7 @@ class GeminiAgent(AgentParser):
                 tokens_used["input"] = usage.prompt_token_count
             if hasattr(usage, 'candidates_token_count'):
                 tokens_used["output"] = usage.candidates_token_count
-        
+
         return AgentParseResult(
             references=references,
             raw_response=response_text,
@@ -172,7 +171,7 @@ class GeminiAgent(AgentParser):
             tokens_used=tokens_used,
             metadata={"backend": "google-generativeai"},
         )
-    
+
     def parse(self, text: str) -> AgentParseResult:
         """Parse text using Gemini synchronously.
         
@@ -191,23 +190,23 @@ class GeminiAgent(AgentParser):
                 "google-genai package not installed. Install with: "
                 "pip install google-genai"
             )
-        
+
         # Create client
         client = genai.Client(api_key=self.api_key)
-        
+
         user_message = f"{self.SYSTEM_PROMPT}\n\nPlease extract and categorize all references from the following research document:\n\n---\n\n{text}\n\n---\n\nReturn the references as a JSON array."
-        
+
         # Generate response
         response = client.models.generate_content(
             model=self.model,
             contents=user_message,
         )
-        
+
         response_text = response.text if hasattr(response, 'text') else str(response)
-        
+
         # Parse references from response
         references = self._parse_response_json(response_text)
-        
+
         # Extract token usage if available
         tokens_used = {}
         if hasattr(response, 'usage_metadata'):
@@ -216,7 +215,7 @@ class GeminiAgent(AgentParser):
                 tokens_used["input"] = usage.prompt_token_count
             if hasattr(usage, 'candidates_token_count'):
                 tokens_used["output"] = usage.candidates_token_count
-        
+
         return AgentParseResult(
             references=references,
             raw_response=response_text,

@@ -5,10 +5,9 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
-from tests.conftest import requires_pandas
-
 from ingestor.cli import _create_registry, create_config, main
 from ingestor.types import IngestConfig, MediaType
+from tests.conftest import requires_pandas
 
 
 class TestCreateConfig:

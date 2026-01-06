@@ -1,20 +1,19 @@
 """Unit tests for ingestor MCP server."""
 
-import pytest
 
 from ingestor_mcp.server import (
-    IngestInput,
-    IngestResult,
-    CrawlInput,
-    CrawlResult,
-    YouTubeInput,
-    YouTubeResult,
-    GitHubInput,
-    GitHubResult,
     BatchInput,
     BatchResult,
     CloneRepoInput,
+    CrawlInput,
+    CrawlResult,
+    GitHubInput,
+    GitHubResult,
+    IngestInput,
+    IngestResult,
     SupportedFormats,
+    YouTubeInput,
+    YouTubeResult,
 )
 
 
@@ -289,11 +288,11 @@ class TestMCPTools:
     def test_tools_registered(self) -> None:
         """Test key tools are registered."""
         from ingestor_mcp.server import (
-            ingest_file,
-            crawl_website,
-            ingest_youtube,
-            ingest_github,
             batch_ingest,
+            crawl_website,
+            ingest_file,
+            ingest_github,
+            ingest_youtube,
         )
 
         assert ingest_file is not None

@@ -15,22 +15,22 @@ load_dotenv()
 def load_config(config_path: Path | None = None) -> dict:
     """Load research config from YAML file (searches default locations if not specified)."""
     import yaml
-    
+
     # Default search paths
     search_paths = [
         Path("./research.yaml"),
         Path("./configs/research.yaml"),
         Path.home() / ".config" / "researcher" / "research.yaml",
     ]
-    
+
     if config_path:
         search_paths.insert(0, Path(config_path))
-    
+
     for path in search_paths:
         if path.exists():
             with open(path) as f:
                 return yaml.safe_load(f) or {}
-    
+
     return {}
 
 
@@ -84,16 +84,16 @@ def research(query: str, output: str, output_format: str | None,
 
     # Load config file
     config_data = load_config(Path(config_path) if config_path else None)
-    
+
     # Resolve API key: CLI > env (GEMINI_API_KEY preferred) > config file
     # Note: google-genai SDK checks GEMINI_API_KEY first, then GOOGLE_API_KEY
     resolved_api_key = (
-        api_key 
-        or os.environ.get("GEMINI_API_KEY") 
-        or os.environ.get("GOOGLE_API_KEY") 
+        api_key
+        or os.environ.get("GEMINI_API_KEY")
+        or os.environ.get("GOOGLE_API_KEY")
         or config_data.get("api_key")
     )
-    
+
     if not resolved_api_key:
         click.echo(click.style("Error: No API key found", fg="red"), err=True)
         click.echo("Set via: --api-key, GEMINI_API_KEY/GOOGLE_API_KEY env, or configs/research.yaml", err=True)

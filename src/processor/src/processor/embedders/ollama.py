@@ -50,12 +50,12 @@ class OllamaEmbedder(BaseEmbedder):
             Embedding vector as list of floats
         """
         client = self._get_client()
-        
+
         # Truncate very long texts to avoid issues
         max_chars = 8000  # ~2000 tokens
         if len(text) > max_chars:
             text = text[:max_chars]
-        
+
         for attempt in range(max_retries):
             try:
                 response = await client.post(
@@ -71,7 +71,7 @@ class OllamaEmbedder(BaseEmbedder):
                     self.dimensions = len(embedding)
 
                 return embedding
-            except Exception as e:
+            except Exception:
                 if attempt < max_retries - 1:
                     await asyncio.sleep(1.0 * (attempt + 1))
                 else:

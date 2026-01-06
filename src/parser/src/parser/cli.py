@@ -217,12 +217,12 @@ def batch(
     # Papers with title or DOI go through retriever for metadata lookup
     pdf_only = []  # Direct PDF download (no metadata search)
     searchable = []  # Title or DOI based search
-    
+
     for p in papers:
         has_title = bool(p.get("title"))
         has_doi = bool(p.get("doi"))
         has_pdf = bool(p.get("pdf_url"))
-        
+
         if has_title or has_doi:
             # Use title/DOI for search (pdf_url as fallback)
             searchable.append(p)
@@ -670,7 +670,7 @@ def doi2bib(
     if input_file:
         path = Path(input_file)
         identifiers = []
-        
+
         # Support both JSON (batch.json) and TXT (dois.txt) formats
         if path.suffix == ".json":
             with open(path) as f:
@@ -714,7 +714,7 @@ def doi2bib(
                 results.append(format_result(result))
             else:
                 failed.append(ident)
-                click.echo(f"    ✗ Failed", err=True)
+                click.echo("    ✗ Failed", err=True)
 
         separator = "\n\n" if output_format == "bibtex" else "\n---\n"
         output = separator.join(results)
@@ -935,7 +935,7 @@ def parse_refs(
         parser batch batch.json -o ./papers  # Download extracted papers
         parser doi2bib -i dois.txt -o refs.bib  # Generate BibTeX
     """
-    from .parser import ResearchParser, ReferenceType
+    from .parser import ResearchParser
     input_path = Path(input_file)
     base_output_dir = Path(output) if output else input_path.parent
 
@@ -961,13 +961,13 @@ def parse_refs(
         if refs:
             grouped = parser.group_by_type(refs)
             _save_references(refs, grouped, regular_output_dir, output_format, "regular" if compare else "")
-            
+
             # Export for batch/doi2bib
             if export_batch:
                 _export_for_batch(refs, regular_output_dir, "regular" if compare else "")
             if export_dois:
                 _export_for_doi2bib(refs, regular_output_dir, "regular" if compare else "")
-            
+
             click.echo(f"\nFound {len(refs)} references (regular):")
             for ref_type, type_refs in grouped.items():
                 click.echo(f"  {ref_type.value}: {len(type_refs)}")
@@ -1063,23 +1063,23 @@ def parse_refs(
         only_regular = regular_set - agent_set
         only_agent = agent_set - regular_set
 
-        click.echo(f"\nTotal references:")
+        click.echo("\nTotal references:")
         click.echo(f"  Regular: {len(regular_refs)}")
         click.echo(f"  Agent: {len(agent_refs)}")
-        click.echo(f"\nOverlap analysis:")
+        click.echo("\nOverlap analysis:")
         click.echo(f"  Common: {len(common)}")
         click.echo(f"  Only in Regular: {len(only_regular)}")
         click.echo(f"  Only in Agent: {len(only_agent)}")
 
         if only_regular:
-            click.echo(f"\nOnly found by Regular parsing:")
+            click.echo("\nOnly found by Regular parsing:")
             for ref_type, value in sorted(only_regular)[:10]:
                 click.echo(f"  [{ref_type}] {value[:60]}...")
             if len(only_regular) > 10:
                 click.echo(f"  ... and {len(only_regular) - 10} more")
 
         if only_agent:
-            click.echo(f"\nOnly found by Agent parsing:")
+            click.echo("\nOnly found by Agent parsing:")
             for ref_type, value in sorted(only_agent)[:10]:
                 click.echo(f"  [{ref_type}] {value[:60]}...")
             if len(only_agent) > 10:
@@ -1090,17 +1090,17 @@ def parse_refs(
         comparison_lines = [
             "# Parsing Comparison Report\n",
             f"Input: {input_path}\n",
-            f"\n## Summary\n",
+            "\n## Summary\n",
             f"- Regular parsing: {len(regular_refs)} references",
             f"- Agent parsing: {len(agent_refs)} references",
             f"- Common: {len(common)}",
             f"- Only Regular: {len(only_regular)}",
             f"- Only Agent: {len(only_agent)}",
-            f"\n## Only in Regular Parsing\n",
+            "\n## Only in Regular Parsing\n",
         ]
         for ref_type, value in sorted(only_regular):
             comparison_lines.append(f"- [{ref_type}] {value}")
-        comparison_lines.append(f"\n## Only in Agent Parsing\n")
+        comparison_lines.append("\n## Only in Agent Parsing\n")
         for ref_type, value in sorted(only_agent):
             comparison_lines.append(f"- [{ref_type}] {value}")
 
@@ -1143,14 +1143,14 @@ def _export_for_batch(refs, output_dir: Path, prefix: str = ""):
     Filters out problematic DOIs (peer reviews, book chapters, etc.)
     """
     from .parser import ReferenceType
-    from .validation import classify_doi, is_problematic_doi
-    
+    from .validation import is_problematic_doi
+
     name_prefix = f"{prefix}_" if prefix else ""
     skipped_dois = []  # Track problematic DOIs for reporting
-    
+
     # First pass: collect all metadata by title (normalized)
     papers_by_title: dict[str, dict] = {}
-    
+
     def normalize_title(title: str) -> str:
         """Normalize title for deduplication."""
         if not title:
@@ -1161,8 +1161,8 @@ def _export_for_batch(refs, output_dir: Path, prefix: str = ""):
         title = re.sub(r'[:\\-–—]', ' ', title)
         title = re.sub(r'\\s+', ' ', title)
         return title
-    
-    def update_paper(norm_title: str, title: str, doi: str | None = None, 
+
+    def update_paper(norm_title: str, title: str, doi: str | None = None,
                      pdf_url: str | None = None, arxiv_id: str | None = None):
         """Update or create paper entry, preserving best metadata."""
         # Check if DOI is problematic (peer review, book chapter, etc.)
@@ -1171,7 +1171,7 @@ def _export_for_batch(refs, output_dir: Path, prefix: str = ""):
             if is_problematic:
                 skipped_dois.append({"doi": doi, "title": title, "reason": reason})
                 doi = None  # Don't use this DOI
-        
+
         if norm_title not in papers_by_title:
             papers_by_title[norm_title] = {
                 "title": title,
@@ -1179,7 +1179,7 @@ def _export_for_batch(refs, output_dir: Path, prefix: str = ""):
                 "pdf_url": None,
                 "arxiv_id": None
             }
-        
+
         paper = papers_by_title[norm_title]
         # Keep longest/most complete title
         if title and (not paper["title"] or len(title) > len(paper["title"])):
@@ -1194,18 +1194,18 @@ def _export_for_batch(refs, output_dir: Path, prefix: str = ""):
         # Update arXiv ID
         if arxiv_id and not paper["arxiv_id"]:
             paper["arxiv_id"] = arxiv_id
-    
+
     # Process all references
     for ref in refs:
         title = ref.title or ""
         norm_title = normalize_title(title)
-        
+
         if ref.type == ReferenceType.DOI:
             doi = ref.value
             title = ref.title or ""
             norm_title = normalize_title(title) if title else doi  # Use DOI as key if no title
             update_paper(norm_title, title, doi=doi)
-        
+
         elif ref.type == ReferenceType.ARXIV:
             arxiv_id = ref.value
             if arxiv_id.lower().startswith("arxiv:"):
@@ -1215,7 +1215,7 @@ def _export_for_batch(refs, output_dir: Path, prefix: str = ""):
             title = ref.title or ""
             norm_title = normalize_title(title) if title else arxiv_id
             update_paper(norm_title, title, doi=doi, arxiv_id=arxiv_id, pdf_url=pdf_url)
-        
+
         elif ref.type == ReferenceType.PDF:
             pdf_url = ref.url or ref.value
             title = ref.title or ""
@@ -1223,7 +1223,7 @@ def _export_for_batch(refs, output_dir: Path, prefix: str = ""):
                 norm_title = normalize_title(title)
                 update_paper(norm_title, title, pdf_url=pdf_url)
             # Skip PDFs without title (can't merge)
-        
+
         elif ref.type == ReferenceType.PAPER:
             title = ref.title or ref.value
             norm_title = normalize_title(title)
@@ -1231,7 +1231,7 @@ def _export_for_batch(refs, output_dir: Path, prefix: str = ""):
             pdf_url = ref.url if ref.url and ref.url.endswith(".pdf") else None
             if norm_title:
                 update_paper(norm_title, title, doi=doi, pdf_url=pdf_url)
-    
+
     # Convert to list, filter out empty entries
     batch_items = []
     for paper in papers_by_title.values():
@@ -1239,12 +1239,12 @@ def _export_for_batch(refs, output_dir: Path, prefix: str = ""):
         if not paper["title"] and not paper["doi"] and not paper["pdf_url"]:
             continue
         batch_items.append(paper)
-    
+
     batch_path = output_dir / f"{name_prefix}batch.json"
     batch_path.write_text(json.dumps(batch_items, indent=2))
     click.echo(f"✓ Batch export ({len(batch_items)} papers): {batch_path}")
     click.echo(f"  Use with: parser batch {batch_path} -o ./papers")
-    
+
     # Report skipped problematic DOIs
     if skipped_dois:
         click.echo(f"⚠ Skipped {len(skipped_dois)} problematic DOIs:")
@@ -1253,12 +1253,12 @@ def _export_for_batch(refs, output_dir: Path, prefix: str = ""):
             click.echo(f"    Reason: {item['reason'][:80]}...")
         if len(skipped_dois) > 5:
             click.echo(f"  ... and {len(skipped_dois) - 5} more")
-        
+
         # Save skipped DOIs to file
         skipped_path = output_dir / f"{name_prefix}skipped_dois.json"
         skipped_path.write_text(json.dumps(skipped_dois, indent=2))
         click.echo(f"  Full list saved to: {skipped_path}")
-    
+
     return batch_path
 
 
@@ -1269,23 +1269,23 @@ def _export_for_doi2bib(refs, output_dir: Path, prefix: str = ""):
     Includes both DOIs and arXiv IDs.
     """
     from .parser import ReferenceType
-    
+
     name_prefix = f"{prefix}_" if prefix else ""
     identifiers = []
     seen = set()
-    
+
     for ref in refs:
         identifier = None
-        
+
         if ref.type == ReferenceType.DOI:
             identifier = ref.value
-        
+
         elif ref.type == ReferenceType.ARXIV:
             arxiv_id = ref.value
             if arxiv_id.lower().startswith("arxiv:"):
                 arxiv_id = arxiv_id[6:]
             identifier = f"arXiv:{arxiv_id}"
-        
+
         elif ref.type == ReferenceType.PAPER:
             # Check for DOI or arXiv ID in metadata
             if ref.metadata.get("doi"):
@@ -1295,16 +1295,16 @@ def _export_for_doi2bib(refs, output_dir: Path, prefix: str = ""):
                 if arxiv_id.lower().startswith("arxiv:"):
                     arxiv_id = arxiv_id[6:]
                 identifier = f"arXiv:{arxiv_id}"
-        
+
         if identifier and identifier not in seen:
             seen.add(identifier)
             identifiers.append(identifier)
-    
+
     dois_path = output_dir / f"{name_prefix}dois.txt"
     dois_path.write_text("\n".join(identifiers) + "\n")
     click.echo(f"✓ DOI export ({len(identifiers)} identifiers): {dois_path}")
     click.echo(f"  Use with: parser doi2bib -i {dois_path} -o references.bib")
-    
+
     return dois_path
 
 
@@ -1556,7 +1556,7 @@ def _load_papers_from_file(filepath: str) -> list[dict[str, str | None]]:
             reader = csv.DictReader(f)
             for row in reader:
                 papers.append({
-                    "doi": row.get("doi"), 
+                    "doi": row.get("doi"),
                     "title": row.get("title"),
                     "pdf_url": row.get("pdf_url"),
                     "arxiv_id": row.get("arxiv_id")

@@ -41,7 +41,7 @@ from .constants import (
     EVENT_READ_TRACES,
     EVENT_SAVE_BOT,
 )
-from .rules import HUMANIZED_KNOWN_RULES, MAX_REASONS, BottleneckRule, KnownCharacteristics
+from .rules import HUMANIZED_KNOWN_RULES, BottleneckRule, KnownCharacteristics
 from .types import (
     AnalysisRuntimeConfig,
     BottleneckOutput,

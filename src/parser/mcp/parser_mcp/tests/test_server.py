@@ -1,20 +1,19 @@
 """Unit tests for parser MCP server."""
 
-import pytest
 
 from parser_mcp.server import (
-    RetrieveInput,
-    RetrieveResult,
     BatchInput,
     BatchResult,
-    ParseRefsInput,
-    ParseRefsResult,
+    CitationPaper,
+    CitationsInput,
     DoiBibInput,
     DoiBibResult,
+    ParseRefsInput,
+    ParseRefsResult,
+    RetrieveInput,
+    RetrieveResult,
     VerifyInput,
     VerifyResult,
-    CitationsInput,
-    CitationPaper,
 )
 
 
@@ -270,10 +269,10 @@ class TestMCPTools:
     def test_tools_registered(self) -> None:
         """Test key tools are registered."""
         from parser_mcp.server import (
-            retrieve_paper,
             batch_retrieve,
-            parse_references,
             doi_to_bibtex,
+            parse_references,
+            retrieve_paper,
         )
 
         assert retrieve_paper is not None

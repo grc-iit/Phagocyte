@@ -1,11 +1,8 @@
 """Pytest configuration and shared fixtures for researcher tests."""
 
-import os
 from pathlib import Path
-from typing import Generator
 
 import pytest
-
 
 # ============================================================================
 # Path Fixtures

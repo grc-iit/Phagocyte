@@ -3,9 +3,8 @@
 
 import pytest
 
-from tests.conftest import requires_ebooklib
-
 from ingestor.types import MediaType
+from tests.conftest import requires_ebooklib
 
 
 @requires_ebooklib

@@ -2,10 +2,10 @@
 
 
 import pytest
+from ingestor.output.writer import OutputWriter
 
 from ingestor.core.registry import create_default_registry
 from ingestor.core.router import Router
-from ingestor.output.writer import OutputWriter
 from ingestor.types import IngestConfig, MediaType
 
 

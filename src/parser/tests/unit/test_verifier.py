@@ -1,7 +1,8 @@
 """Unit tests for citation verifier."""
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 from parser.doi2bib.verifier import (
     BibEntry,

@@ -7,11 +7,11 @@ from research documents using:
 """
 
 from .base import AgentParser, AgentParseResult
-from .factory import create_agent, list_available_agents, is_agent_available
+from .factory import create_agent, is_agent_available, list_available_agents
 
 __all__ = [
     "AgentParser",
-    "AgentParseResult", 
+    "AgentParseResult",
     "create_agent",
     "list_available_agents",
     "is_agent_available",
