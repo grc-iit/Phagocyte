@@ -103,7 +103,7 @@ async def table_info(table_name: str):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.get("/tables/{table_name}/schema")
@@ -126,7 +126,7 @@ async def table_schema(table_name: str):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.post("/tables/{table_name}/search")
@@ -152,7 +152,7 @@ async def vector_search(table_name: str, request: SearchRequest):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.post("/tables/{table_name}/search/hybrid")
@@ -183,7 +183,7 @@ async def hybrid_search(table_name: str, request: HybridSearchRequest):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.post("/tables/{table_name}/search/text")
@@ -209,7 +209,7 @@ async def text_search(table_name: str, request: TextSearchRequest):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.get("/tables/{table_name}/rows")
@@ -239,7 +239,7 @@ async def get_rows(table_name: str, limit: int = 50, offset: int = 0):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.get("/metadata")
@@ -257,7 +257,7 @@ async def get_metadata():
 
         return {"metadata": metadata}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 if __name__ == "__main__":

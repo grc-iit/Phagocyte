@@ -131,7 +131,6 @@ class GeminiAgent(AgentParser):
         """Parse using google-genai directly."""
         try:
             from google import genai
-            from google.genai import types
         except ImportError as e:
             raise ImportError(
                 "google-genai package not installed. Install with: "
