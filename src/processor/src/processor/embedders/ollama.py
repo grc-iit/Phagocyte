@@ -76,7 +76,7 @@ class OllamaEmbedder(BaseEmbedder):
                     await asyncio.sleep(1.0 * (attempt + 1))
                 else:
                     raise
-        
+
         # Should never reach here due to raise, but satisfy mypy
         return []
 

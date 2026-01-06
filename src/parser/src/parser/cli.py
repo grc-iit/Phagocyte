@@ -1248,8 +1248,8 @@ def _export_for_batch(refs, output_dir: Path, prefix: str = ""):
     if skipped_dois:
         click.echo(f"⚠ Skipped {len(skipped_dois)} problematic DOIs:")
         for item in skipped_dois[:5]:  # Show first 5
-            doi = item.get('doi', '')
-            reason = item.get('reason', '')
+            doi = item.get('doi', '') or ''
+            reason = item.get('reason', '') or ''
             click.echo(f"  - {doi[:50]}...")
             click.echo(f"    Reason: {reason[:80]}...")
         if len(skipped_dois) > 5:

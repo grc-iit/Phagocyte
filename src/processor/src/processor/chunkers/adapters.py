@@ -365,13 +365,13 @@ class LlamaIndexMarkdownAdapter(BaseChunker):
         # Convert sections to chunks
         chunks = []
         for section in sections:
-            section_content: str = section["content"] or ""
+            section_text_content: str = section["content"] or ""
 
             # Further split if section is too large
-            if len(section_content) > self.chunk_size:
+            if len(section_text_content) > self.chunk_size:
                 # Simple character-based splitting for oversized sections
-                for i in range(0, len(section_content), self.chunk_size - self.chunk_overlap):
-                    sub_content = section_content[i:i + self.chunk_size]
+                for i in range(0, len(section_text_content), self.chunk_size - self.chunk_overlap):
+                    sub_content = section_text_content[i:i + self.chunk_size]
                     chunk = Chunk.create(
                         content=sub_content,
                         source_file=source_file,
@@ -382,7 +382,7 @@ class LlamaIndexMarkdownAdapter(BaseChunker):
                     chunks.append(chunk)
             else:
                 chunk = Chunk.create(
-                    content=section_content,
+                    content=section_text_content,
                     source_file=source_file,
                     source_type=self._get_content_type(source_file),
                     section_path=section["path"],
