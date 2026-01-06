@@ -369,11 +369,10 @@ class InstitutionalAccessClient:
 
                 # Check if we've passed through the proxy and are on a publisher site
                 # EZProxy rewrites domains like nature-com.ezproxy.gl.iit.edu
-                if "ezproxy" in parsed.netloc.lower() and "login" not in current_url.lower():
-                    # Check if we're on a proxied publisher site (not the login page)
-                    if any(x in parsed.netloc.lower() for x in ["nature", "ieee", "acm", "springer", "elsevier", "wiley"]):
-                        print(f"\nReached proxied site: {parsed.netloc}")
-                        break
+                if ("ezproxy" in parsed.netloc.lower() and "login" not in current_url.lower() and
+                    any(x in parsed.netloc.lower() for x in ["nature", "ieee", "acm", "springer", "elsevier", "wiley"])):
+                    print(f"\nReached proxied site: {parsed.netloc}")
+                    break
 
                 # Also check for direct publisher access (some EZProxy setups)
                 if any(x in current_url.lower() for x in ["nature.com", "ieee.org", "acm.org"]) and "login" not in current_url.lower():

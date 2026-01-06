@@ -1185,9 +1185,8 @@ def _export_for_batch(refs, output_dir: Path, prefix: str = ""):
         if title and (not paper["title"] or len(title) > len(paper["title"])):
             paper["title"] = title
         # Update DOI (prefer non-arXiv DOI)
-        if doi:
-            if not paper["doi"] or (paper["doi"].startswith("10.48550/arXiv") and not doi.startswith("10.48550/arXiv")):
-                paper["doi"] = doi
+        if doi and (not paper["doi"] or (paper["doi"].startswith("10.48550/arXiv") and not doi.startswith("10.48550/arXiv"))):
+            paper["doi"] = doi
         # Update PDF URL
         if pdf_url and pdf_url.endswith(".pdf") and not paper["pdf_url"]:
             paper["pdf_url"] = pdf_url

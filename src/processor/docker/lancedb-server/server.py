@@ -83,7 +83,7 @@ async def list_tables():
         tables = connection.table_names()
         return {"tables": tables}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.get("/tables/{table_name}")

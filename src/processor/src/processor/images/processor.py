@@ -127,9 +127,8 @@ class ImageProcessor:
 
         # Also check direct subdirectories
         for subdir in input_path.iterdir():
-            if subdir.is_dir() and subdir.name != "papers":
-                if (subdir / "figures.json").exists():
-                    paper_dirs.append(subdir)
+            if subdir.is_dir() and subdir.name != "papers" and (subdir / "figures.json").exists():
+                paper_dirs.append(subdir)
 
         return paper_dirs
 

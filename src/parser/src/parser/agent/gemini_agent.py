@@ -72,10 +72,10 @@ class GeminiAgent(AgentParser):
             from google.adk.agents import Agent
             from google.adk.runners import Runner
             from google.genai import types
-        except ImportError:
+        except ImportError as e:
             raise ImportError(
                 "google-adk package not installed. Install with: pip install google-adk"
-            )
+            ) from e
 
         # Set up environment for ADK
         os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "FALSE"
@@ -132,11 +132,11 @@ class GeminiAgent(AgentParser):
         try:
             from google import genai
             from google.genai import types
-        except ImportError:
+        except ImportError as e:
             raise ImportError(
                 "google-genai package not installed. Install with: "
                 "pip install google-genai"
-            )
+            ) from e
 
         # Create client
         client = genai.Client(api_key=self.api_key)
@@ -185,11 +185,11 @@ class GeminiAgent(AgentParser):
         """
         try:
             from google import genai
-        except ImportError:
+        except ImportError as e:
             raise ImportError(
                 "google-genai package not installed. Install with: "
                 "pip install google-genai"
-            )
+            ) from e
 
         # Create client
         client = genai.Client(api_key=self.api_key)

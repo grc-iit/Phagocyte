@@ -1,5 +1,6 @@
 """Factory for creating agent instances."""
 
+import importlib.util
 from typing import Literal
 
 from .base import AgentParser
@@ -113,31 +114,27 @@ def is_agent_available(agent_type: AgentType) -> tuple[bool, str]:
     agent_type_lower = agent_type.lower()
 
     if agent_type_lower == "claude":
-        try:
-            import claude_agent_sdk
+        spec = importlib.util.find_spec("claude_agent_sdk")
+        if spec is not None:
             return True, "claude-agent-sdk package installed (no API key needed)"
-        except ImportError:
-            return False, "claude-agent-sdk package not installed. Install with: pip install claude-agent-sdk"
+        return False, "claude-agent-sdk package not installed. Install with: pip install claude-agent-sdk"
 
     elif agent_type_lower == "anthropic":
-        try:
-            import anthropic
+        spec = importlib.util.find_spec("anthropic")
+        if spec is not None:
             return True, "anthropic package installed (requires ANTHROPIC_API_KEY)"
-        except ImportError:
-            return False, "anthropic package not installed. Install with: pip install anthropic"
+        return False, "anthropic package not installed. Install with: pip install anthropic"
 
     elif agent_type_lower == "gemini":
-        try:
-            from google.adk.agents import Agent
+        spec = importlib.util.find_spec("google.adk.agents")
+        if spec is not None:
             return True, "google-adk package installed"
-        except ImportError:
-            return False, "google-adk package not installed. Install with: pip install google-adk"
+        return False, "google-adk package not installed. Install with: pip install google-adk"
 
     elif agent_type_lower == "google":
-        try:
-            from google import genai
+        spec = importlib.util.find_spec("google.genai")
+        if spec is not None:
             return True, "google-genai package installed (requires GOOGLE_API_KEY)"
-        except ImportError:
-            return False, "google-genai package not installed. Install with: pip install google-genai"
+        return False, "google-genai package not installed. Install with: pip install google-genai"
 
     return False, f"Unknown agent type: {agent_type}"

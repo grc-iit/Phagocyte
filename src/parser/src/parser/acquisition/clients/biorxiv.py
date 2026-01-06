@@ -118,11 +118,10 @@ class BioRxivClient(BaseClient):
                     content = response.content
                     content_type = response.headers.get("content-type", "")
 
-                    if "pdf" in content_type.lower() or content.startswith(b"%PDF"):
-                        if len(content) > 1000:
-                            output_path.parent.mkdir(parents=True, exist_ok=True)
-                            output_path.write_bytes(content)
-                            return True
+                    if ("pdf" in content_type.lower() or content.startswith(b"%PDF")) and len(content) > 1000:
+                        output_path.parent.mkdir(parents=True, exist_ok=True)
+                        output_path.write_bytes(content)
+                        return True
         except Exception:
             pass
 

@@ -73,11 +73,11 @@ class AnthropicAgent(AgentParser):
         """Parse using claude-agent-sdk (no API key needed)."""
         try:
             from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, TextBlock, query
-        except ImportError:
+        except ImportError as e:
             raise ImportError(
                 "claude-agent-sdk package not installed. Install with: "
                 "pip install claude-agent-sdk"
-            )
+            ) from e
 
         user_message = f"""{self.SYSTEM_PROMPT}
 
@@ -120,10 +120,10 @@ Now extract ALL references from the document above and return them as a JSON arr
         """Parse using direct anthropic SDK (requires API key)."""
         try:
             from anthropic import AsyncAnthropic
-        except ImportError:
+        except ImportError as e:
             raise ImportError(
                 "anthropic package not installed. Install with: pip install anthropic"
-            )
+            ) from e
 
         client = AsyncAnthropic(api_key=self.api_key)
 
@@ -213,10 +213,10 @@ Now extract ALL references from the document above and return them as a JSON arr
         """Parse using direct anthropic SDK synchronously."""
         try:
             from anthropic import Anthropic
-        except ImportError:
+        except ImportError as e:
             raise ImportError(
                 "anthropic package not installed. Install with: pip install anthropic"
-            )
+            ) from e
 
         client = Anthropic(api_key=self.api_key)
 

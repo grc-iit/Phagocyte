@@ -184,7 +184,7 @@ class LlamaIndexCodeAdapter(BaseChunker):
                 # Start new chunk with overlap
                 overlap_lines = current_chunk_lines[-self.chunk_overlap_lines:]
                 current_chunk_lines = overlap_lines
-                current_size = sum(len(l) + 1 for l in current_chunk_lines)
+                current_size = sum(len(line) + 1 for line in current_chunk_lines)
 
             current_chunk_lines.append(line)
             current_size += line_size

@@ -441,20 +441,16 @@ class LanceDBLoader:
             row_count = table.count_rows()
 
             # Create FTS index on content (always, needed for hybrid search)
-            try:
+            with contextlib.suppress(Exception):
                 table.create_fts_index("content")
-            except Exception:
-                pass  # Index may already exist
 
             # Create IVF-PQ vector index (only for larger tables)
             if row_count >= 256:
-                try:
+                with contextlib.suppress(Exception):
                     table.create_index(
                         num_partitions=min(ivf_partitions, row_count // 10),
                         num_sub_vectors=96,
                     )
-                except Exception:
-                    pass  # Index may already exist
 
     def get_stats(self) -> dict[str, int]:
         """Get row counts for all tables."""

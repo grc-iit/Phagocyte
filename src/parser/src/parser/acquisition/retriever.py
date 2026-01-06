@@ -352,20 +352,18 @@ class PaperRetriever:
                     await self.rate_limiter.wait("semantic_scholar")
                     results = await s2.search(title, limit=5)
                     for result in results:
-                        if result and result.get("year"):
-                            # Check title similarity
-                            if self._titles_match(title, result.get("title", ""), threshold=0.8):
-                                found_doi = result.get("doi")
-                                found_arxiv = result.get("arxiv_id")
-                                return {
-                                    "doi": found_doi,
-                                    "title": result.get("title"),
-                                    "authors": result.get("authors", []),
-                                    "year": result.get("year"),
-                                    "venue": result.get("venue"),
-                                    "arxiv_id": found_arxiv,
-                                    "pdf_url": pdf_url,  # Preserve original PDF URL
-                                }
+                        if result and result.get("year") and self._titles_match(title, result.get("title", ""), threshold=0.8):
+                            found_doi = result.get("doi")
+                            found_arxiv = result.get("arxiv_id")
+                            return {
+                                "doi": found_doi,
+                                "title": result.get("title"),
+                                "authors": result.get("authors", []),
+                                "year": result.get("year"),
+                                "venue": result.get("venue"),
+                                "arxiv_id": found_arxiv,
+                                "pdf_url": pdf_url,  # Preserve original PDF URL
+                            }
                 except Exception:
                     pass
 
@@ -383,10 +381,9 @@ class PaperRetriever:
                             if classification.get("type") in ("review", "book_chapter"):
                                 continue  # Skip this result
                         # Check title similarity with higher threshold
-                        if result and result.get("year") and result.get("authors"):
-                            if self._titles_match(title, result.get("title", ""), threshold=0.8):
-                                result["pdf_url"] = pdf_url  # Preserve original PDF URL
-                                return result
+                        if result and result.get("year") and result.get("authors") and self._titles_match(title, result.get("title", ""), threshold=0.8):
+                            result["pdf_url"] = pdf_url  # Preserve original PDF URL
+                            return result
                 except Exception:
                     pass
 

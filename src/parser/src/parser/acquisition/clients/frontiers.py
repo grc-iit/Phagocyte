@@ -135,14 +135,13 @@ class FrontiersClient:
                     content_type = response.headers.get("content-type", "")
 
                     # Check if we got a PDF
-                    if "pdf" in content_type.lower() or content.startswith(b"%PDF"):
-                        if len(content) > 1000:
-                            output_path.parent.mkdir(parents=True, exist_ok=True)
-                            output_path.write_bytes(content)
-                            return {
-                                "pdf_path": str(output_path),
-                                "source": "frontiers",
-                            }
+                    if ("pdf" in content_type.lower() or content.startswith(b"%PDF")) and len(content) > 1000:
+                        output_path.parent.mkdir(parents=True, exist_ok=True)
+                        output_path.write_bytes(content)
+                        return {
+                            "pdf_path": str(output_path),
+                            "source": "frontiers",
+                        }
         except Exception:
             pass
 
@@ -237,11 +236,10 @@ class FrontiersClient:
 
                 if response.status_code == 200:
                     content = response.content
-                    if "pdf" in response.headers.get("content-type", "").lower() or content.startswith(b"%PDF"):
-                        if len(content) > 1000:
-                            output_path.parent.mkdir(parents=True, exist_ok=True)
-                            output_path.write_bytes(content)
-                            return {"pdf_path": str(output_path), "source": "frontiers"}
+                    if ("pdf" in response.headers.get("content-type", "").lower() or content.startswith(b"%PDF")) and len(content) > 1000:
+                        output_path.parent.mkdir(parents=True, exist_ok=True)
+                        output_path.write_bytes(content)
+                        return {"pdf_path": str(output_path), "source": "frontiers"}
 
                 # Check for downloaded file
                 time.sleep(3)

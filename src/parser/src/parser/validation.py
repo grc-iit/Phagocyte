@@ -379,10 +379,8 @@ def _fix_reference(ref: ParsedReference, validation_result: ValidationResult) ->
     fixed = deepcopy(ref)
 
     for error in validation_result.errors:
-        if error.field == "url" and error.message.startswith("Invalid or malformed URL"):
-            # Try to fix missing closing parenthesis
-            if fixed.url and '(' in fixed.url and fixed.url.count('(') > fixed.url.count(')'):
-                fixed.url = fixed.url + ')'
+        if error.field == "url" and error.message.startswith("Invalid or malformed URL") and fixed.url and '(' in fixed.url and fixed.url.count('(') > fixed.url.count(')'):
+            fixed.url = fixed.url + ')'
 
     return fixed
 

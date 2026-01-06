@@ -7,9 +7,15 @@ Supports all HuggingFace embedding models including:
 Requires: sentence-transformers, torch
 """
 
+from __future__ import annotations
+
 import asyncio
+from typing import TYPE_CHECKING
 
 from .base import BaseEmbedder
+
+if TYPE_CHECKING:
+    from sentence_transformers import SentenceTransformer
 
 
 class TransformersEmbedder(BaseEmbedder):
@@ -46,7 +52,7 @@ class TransformersEmbedder(BaseEmbedder):
         self._model: SentenceTransformer | None = None
         self._dimensions: int | None = None
 
-    def _get_model(self) -> "SentenceTransformer":
+    def _get_model(self) -> SentenceTransformer:
         """Lazy load the model."""
         if self._model is None:
             try:

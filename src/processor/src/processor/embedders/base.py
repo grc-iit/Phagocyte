@@ -67,6 +67,7 @@ class BaseEmbedder(ABC):
 
         return chunks
 
+    @abstractmethod
     async def close(self) -> None:
         """Close any open connections."""
-        pass
+        ...

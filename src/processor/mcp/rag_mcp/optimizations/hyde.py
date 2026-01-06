@@ -38,13 +38,12 @@ async def _hyde_via_claude_sdk(query: str, config: RAGConfig) -> str:
     try:
         from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, ResultMessage, TextBlock
         from claude_agent_sdk import query as claude_query
-    except ImportError:
-        raise ImportError(
-            "Claude Agent SDK not available. "
-            "Install with: pip install claude-agent-sdk "
-            "Or set hyde.backend to 'ollama' in config."
-        )
-
+        except ImportError as e:
+            raise ImportError(
+                "Claude Agent SDK not available. "
+                "Install with: pip install claude-agent-sdk "
+                "Or set hyde.backend to 'ollama' in config."
+            ) from e
     prompt = config.hyde.prompt_template.format(query=query)
 
     options = ClaudeAgentOptions(

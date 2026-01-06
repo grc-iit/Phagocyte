@@ -45,12 +45,11 @@ def _get_reranker(config: RAGConfig):
 
     try:
         from sentence_transformers import CrossEncoder
-    except ImportError:
-        raise ImportError(
-            "Reranking requires sentence-transformers. "
-            "Install with: uv sync --extra reranker"
-        )
-
+        except ImportError as e:
+            raise ImportError(
+                "Reranking requires sentence-transformers. "
+                "Install with: uv sync --extra reranker"
+            ) from e
     # Determine device
     device = config.reranker.device
     if device == "auto":
