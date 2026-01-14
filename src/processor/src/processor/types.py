@@ -233,6 +233,60 @@ class ImageChunk:
             source_paper=paper_dir.name,
         )
 
+    @classmethod
+    def from_standalone_image(
+        cls,
+        image_path: Path,
+        source_name: str,
+        figure_id: int,
+    ) -> "ImageChunk":
+        """Create ImageChunk from a standalone image file (no figures.json).
+
+        Derives description from filename for text embedding.
+
+        Args:
+            image_path: Path to the image file
+            source_name: Name of the source (paper/folder name)
+            figure_id: Sequential figure ID
+
+        Returns:
+            ImageChunk instance
+        """
+        import re
+
+        # Generate description from filename
+        # e.g., "paper_name_img_001.png" -> "Figure 1 from paper_name"
+        # e.g., "async_io_diagram.png" -> "async io diagram"
+        filename = image_path.stem
+
+        # Try to extract meaningful description from filename
+        # Remove common patterns like _img_001, -001, etc.
+        clean_name = re.sub(r'[_-]?img[_-]?\d+$', '', filename, flags=re.IGNORECASE)
+        clean_name = re.sub(r'[_-]?\d+$', '', clean_name)
+
+        # Convert underscores/dashes to spaces
+        clean_name = re.sub(r'[_-]+', ' ', clean_name).strip()
+
+        # Generate description
+        if clean_name:
+            description = f"Figure {figure_id}: {clean_name}"
+        else:
+            description = f"Figure {figure_id} from {source_name}"
+
+        # Generate unique ID
+        chunk_id = f"{source_name}:standalone_fig{figure_id}"
+
+        return cls(
+            id=chunk_id,
+            figure_id=figure_id,
+            caption=f"Figure {figure_id}",
+            vlm_description=description,
+            classification="standalone",
+            page=0,
+            image_path=image_path,
+            source_paper=source_name,
+        )
+
 
 @dataclass
 class ImageProcessingResult:
