@@ -45,6 +45,11 @@ uv run phagocyte parse batch ./output/batch.json -o ./papers
 uv run phagocyte ingest batch ./papers -o ./markdown
 uv run phagocyte process run ./markdown -o ./lancedb
 uv run phagocyte process search ./lancedb "chunking strategies"
+
+# For crawled documentation sites (filter out TOC/navigation pages)
+uv run phagocyte ingest crawl https://docs.example.com --max-pages 500 -o ./docs
+uv run phagocyte ingest filter ./docs --detect-toc --remove
+uv run phagocyte process run ./docs -o ./lancedb
 ```
 
 ---
@@ -92,12 +97,13 @@ uv run phagocyte parse config push/pull   # Sync config via GitHub gist
 | `verify` | `--dry-run` | Preview without making changes |
 | `citations` | `--direction` | Citation direction: `refs`, `cited-by`, `both` |
 
-### Ingest (5 commands)
+### Ingest (6 commands)
 ```bash
 uv run phagocyte ingest file <source>     # Single file/URL to markdown
 uv run phagocyte ingest batch <dir>       # Batch process folder
 uv run phagocyte ingest crawl <url>       # Deep crawl website
 uv run phagocyte ingest clone <repo>      # Clone and ingest git repo
+uv run phagocyte ingest filter <dir>      # Filter low-quality/TOC pages (universal)
 uv run phagocyte ingest describe <path>   # Generate VLM image descriptions
 ```
 
@@ -115,6 +121,12 @@ uv run phagocyte ingest describe <path>   # Generate VLM image descriptions
 | `clone` | `--shallow` | Shallow clone (faster) |
 | `clone` | `--max-files` | Maximum files to process |
 | `clone` | `--keep-source` | Keep original source files for code chunking |
+| `filter` | `--detect-toc` | Enable TIER 3 TOC detection (recommended for docs) |
+| `filter` | `--remove` | Remove filtered files (default: dry run) |
+| `filter` | `--min-lines` | Minimum line count (default: 30) |
+| `filter` | `--min-words` | Minimum word count (default: 100) |
+| `filter` | `--max-link-ratio` | Max link ratio threshold (default: 0.40) |
+| `filter` | `--report` | Save detailed filter report |
 
 ### Process (11 commands)
 ```bash
@@ -138,6 +150,8 @@ uv run phagocyte process test-e2e         # Run end-to-end validation
 | `run` | `--code-profile` | Code embedding: `low` (0.5B), `high` (1.5B) |
 | `run` | `--table-mode` | Table handling: `separate`, `unified`, `both` |
 | `run` | `--incremental` | Only process new/changed files |
+| `run` | `--chunk-only` | Skip embedding, save chunks with zero vectors |
+| `run` | `--clean` | Delete output database before processing |
 | `run` | `--batch-size` | Documents per batch |
 | `search` | `--limit` | Maximum results to return |
 | `search` | `--table` | Table to search: `text_chunks`, `code_chunks` |

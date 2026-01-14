@@ -96,7 +96,25 @@ uv run processor process ./input -o ./lancedb \
 | `--table-mode` | separate, unified, both | Table organization |
 | `--incremental/--full` | - | Skip unchanged files |
 | `--content-type` | auto, code, paper, markdown | Force content detection |
-| `--hybrid` | - | Enable hybrid search (vector + BM25) |
+| `--chunk-only` | - | Skip embedding, save chunks with zero vectors |
+| `--clean` | - | Delete output database before processing |
+
+### Chunk-Only Mode
+
+Process documents without running embeddings - useful for:
+- Testing chunking configuration
+- Preparing data for later embedding
+- Quick iteration on chunking parameters
+
+```bash
+# Chunk files without embedding (fast, no Ollama needed)
+uv run processor process ./docs -o ./lancedb --chunk-only
+
+# Later, run with embeddings (clean first to avoid duplicates)
+uv run processor process ./docs -o ./lancedb --clean --full
+```
+
+**Note:** When switching from `--chunk-only` to full embedding mode, use `--clean` to remove the zero-vector data first.
 
 ## Embedding Models
 
