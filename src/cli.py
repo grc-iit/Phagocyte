@@ -420,8 +420,10 @@ def ingest_batch(input_dir, output, recursive, concurrency, describe_images, ver
 @click.option(
     "--strategy", type=click.Choice(["bfs", "dfs", "bestfirst"]), default="bfs"
 )
+@click.option("--include", multiple=True, help="URL patterns to include (can use multiple times)")
+@click.option("--exclude", multiple=True, help="URL patterns to exclude (can use multiple times)")
 @click.option("-v", "--verbose", is_flag=True, help="Verbose output")
-def ingest_crawl(url, output, max_pages, max_depth, strategy, verbose):
+def ingest_crawl(url, output, max_pages, max_depth, strategy, include, exclude, verbose):
     """Deep crawl a website and convert to markdown.
 
     \b
@@ -447,6 +449,10 @@ def ingest_crawl(url, output, max_pages, max_depth, strategy, verbose):
         "--strategy",
         strategy,
     ]
+    for pattern in include:
+        args.extend(["--include", pattern])
+    for pattern in exclude:
+        args.extend(["--exclude", pattern])
     if verbose:
         args.append("-v")
     sys.exit(run_module("ingestor", args))
@@ -549,7 +555,9 @@ def process():
     default="separate",
 )
 @click.option("--incremental", is_flag=True, help="Skip unchanged files")
+@click.option("--full", is_flag=True, help="Process all files (disable incremental)")
 @click.option("--batch-size", default=32, help="Embedding batch size")
+@click.option("--chunk-only", is_flag=True, help="Only chunk files, skip embedding")
 @click.option("-v", "--verbose", is_flag=True, help="Verbose output")
 def process_run(
     input_path,
@@ -558,7 +566,9 @@ def process_run(
     code_profile,
     table_mode,
     incremental,
+    full,
     batch_size,
+    chunk_only,
     verbose,
 ):
     """Process files through chunking, embedding, and loading into LanceDB.
@@ -567,6 +577,7 @@ def process_run(
     Examples:
       phagocyte process run ./markdown -o ./lancedb
       phagocyte process run ./code --text-profile medium --incremental
+      phagocyte process run ./docs --chunk-only --full
     """
     args = [
         "process",
@@ -584,6 +595,10 @@ def process_run(
     ]
     if incremental:
         args.append("--incremental")
+    elif full:
+        args.append("--full")
+    if chunk_only:
+        args.append("--chunk-only")
     if verbose:
         args.append("-v")
     sys.exit(run_module("processor", args))

@@ -227,155 +227,6 @@ class LlamaIndexCodeAdapter(BaseChunker):
         return content_type in self.content_types
 
 
-class MarkdownCodeBlockExtractor(BaseChunker):
-    """Extracts fenced code blocks from markdown as separate code chunks.
-
-    This chunker finds all fenced code blocks (```language ... ```) in markdown
-    documents and creates code chunks with appropriate language metadata.
-    This is essential for processing GitHub repo markdown that contains
-    embedded source code.
-    """
-
-    # Language aliases to normalize
-    LANGUAGE_ALIASES: dict[str, str] = {
-        "py": "python",
-        "python3": "python",
-        "js": "javascript",
-        "ts": "typescript",
-        "sh": "bash",
-        "shell": "bash",
-        "zsh": "bash",
-        "c++": "cpp",
-        "cxx": "cpp",
-        "rs": "rust",
-        "rb": "ruby",
-        "yml": "yaml",
-        "dockerfile": "docker",
-    }
-
-    # Map languages to ContentType
-    LANGUAGE_TO_CONTENT_TYPE: dict[str, ContentType] = {
-        "python": ContentType.CODE_PYTHON,
-        "javascript": ContentType.CODE_JS,
-        "typescript": ContentType.CODE_TS,
-        "java": ContentType.CODE_JAVA,
-        "cpp": ContentType.CODE_CPP,
-        "c": ContentType.CODE_CPP,
-        "go": ContentType.CODE_GO,
-        "rust": ContentType.CODE_RUST,
-        "bash": ContentType.CODE_SHELL,
-        "shell": ContentType.CODE_SHELL,
-    }
-
-    # Minimum code block size to include (skip tiny snippets)
-    MIN_CODE_BLOCK_SIZE = 50  # characters
-
-    def __init__(
-        self,
-        chunk_size: int | None = None,
-        chunk_overlap: int | None = None,
-        min_block_size: int | None = None,
-    ):
-        """Initialize code block extractor.
-
-        Args:
-            chunk_size: Max characters per chunk
-            chunk_overlap: Not used for this chunker
-            min_block_size: Minimum code block size to include
-        """
-        super().__init__(chunk_size, chunk_overlap)
-        self.min_block_size = min_block_size or self.MIN_CODE_BLOCK_SIZE
-
-    def chunk(
-        self,
-        content: str,
-        source_file: Path,
-        metadata: dict[str, Any] | None = None,
-    ) -> list[Chunk]:
-        """Extract fenced code blocks from markdown content.
-
-        Args:
-            content: Markdown content with fenced code blocks
-            source_file: Path to source file
-            metadata: Optional additional metadata
-
-        Returns:
-            List of Chunk objects for each code block
-        """
-        import re
-
-        chunks = []
-
-        # Pattern to match fenced code blocks with optional language
-        # Handles both ``` and ~~~ style fences
-        code_block_pattern = re.compile(
-            r'^(?P<fence>`{3,}|~{3,})(?P<lang>\w*)\s*\n'
-            r'(?P<code>.*?)'
-            r'^(?P=fence)\s*$',
-            re.MULTILINE | re.DOTALL
-        )
-
-        # Also extract file path hints from markdown headers like ### `path/to/file.py`
-        file_path_pattern = re.compile(r'^#{1,6}\s+`([^`]+)`\s*$', re.MULTILINE)
-
-        # Track current file path context from headers
-        current_file_path: str | None = None
-        last_header_pos = 0
-
-        # Find all file path headers
-        file_path_headers = {m.start(): m.group(1) for m in file_path_pattern.finditer(content)}
-
-        for match in code_block_pattern.finditer(content):
-            code = match.group('code').strip()
-            lang = match.group('lang').lower() if match.group('lang') else ""
-
-            # Skip small code blocks (likely examples, not actual source)
-            if len(code) < self.min_block_size:
-                continue
-
-            # Normalize language
-            lang = self.LANGUAGE_ALIASES.get(lang, lang)
-
-            # Skip non-code blocks (like output, logs, etc.)
-            if lang in {'', 'text', 'output', 'log', 'console', 'plaintext', 'txt'}:
-                continue
-
-            # Find the most recent file path header before this code block
-            block_start = match.start()
-            for header_pos in sorted(file_path_headers.keys(), reverse=True):
-                if header_pos < block_start:
-                    current_file_path = file_path_headers[header_pos]
-                    break
-
-            # Determine content type
-            content_type = self.LANGUAGE_TO_CONTENT_TYPE.get(lang, ContentType.CODE_OTHER)
-
-            # Calculate approximate line numbers in original markdown
-            lines_before = content[:match.start()].count('\n')
-            code_lines = code.count('\n') + 1
-
-            # Use title field to store original file path if available
-            title = current_file_path if current_file_path else None
-
-            chunk = Chunk.create(
-                content=code,
-                source_file=source_file,
-                source_type=content_type,
-                language=lang,
-                title=title,
-                start_line=lines_before + 1,
-                end_line=lines_before + code_lines,
-                **(metadata or {}),
-            )
-            chunks.append(chunk)
-
-        return chunks
-
-    def supports(self, content_type: ContentType) -> bool:
-        """This chunker works on markdown content."""
-        return content_type in [ContentType.MARKDOWN, ContentType.WEBSITE, ContentType.TEXT]
-
-
 class LlamaIndexMarkdownAdapter(BaseChunker):
     """Uses LlamaIndex's MarkdownNodeParser for markdown and paper documents.
 
@@ -399,18 +250,14 @@ class LlamaIndexMarkdownAdapter(BaseChunker):
         self,
         chunk_size: int | None = None,
         chunk_overlap: int | None = None,
-        extract_code_blocks: bool = True,
     ):
         """Initialize markdown chunker.
 
         Args:
             chunk_size: Max characters per chunk
             chunk_overlap: Overlap between chunks
-            extract_code_blocks: Also extract fenced code blocks as separate code chunks
         """
         super().__init__(chunk_size, chunk_overlap)
-        self.extract_code_blocks = extract_code_blocks
-        self._code_extractor = MarkdownCodeBlockExtractor() if extract_code_blocks else None
 
     def chunk(
         self,
@@ -420,16 +267,11 @@ class LlamaIndexMarkdownAdapter(BaseChunker):
     ) -> list[Chunk]:
         """Chunk markdown/paper using header-based splitting.
 
-        Also extracts fenced code blocks as separate code chunks if extract_code_blocks=True.
+        Only processes text content - code blocks are included as part of the text context.
         """
         chunks = []
 
-        # First, extract code blocks as separate code chunks
-        if self.extract_code_blocks and self._code_extractor:
-            code_chunks = self._code_extractor.chunk(content, source_file, metadata)
-            chunks.extend(code_chunks)
-
-        # Then, process the text content (including code blocks as text for context)
+        # Process the text content (including code blocks as text for context)
         try:
             # Create LlamaIndex document
             doc = Document(text=content, metadata={"source": str(source_file)})

@@ -71,7 +71,7 @@ class GitRepoConfig:
 
     # Processing options
     max_file_size: int = 500_000  # 500KB max per file
-    max_total_files: int = 500  # Maximum files to process
+    max_total_files: int = 10_000  # Maximum files to process
     include_binary_metadata: bool = False  # Extract metadata from binary files
     include_submodules: bool = False  # Process git submodules
 
@@ -325,7 +325,12 @@ class GitExtractor(BaseExtractor):
     async def _extract_github_file(
         self, owner: str, repo: str, branch: str, path: str, url: str
     ) -> ExtractionResult:
-        """Extract a single file via GitHub API."""
+        """Extract a single file via GitHub API.
+        
+        Code content is kept in source_files, not converted to markdown.
+        """
+        from ...types import SourceFile
+        
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}?ref={branch}"
         data = await self._api_request(api_url)
 
@@ -335,7 +340,8 @@ class GitExtractor(BaseExtractor):
 
         filename = path.split("/")[-1]
         lang = self._detect_language(Path(filename))
-
+        
+        # Build metadata-only markdown (no code content)
         markdown = "\n".join([
             f"# {filename}",
             "",
@@ -346,10 +352,18 @@ class GitExtractor(BaseExtractor):
             "",
             "## Content",
             "",
-            f"```{lang}",
-            content,
-            "```",
+            "File content is processed separately by the processor.",
         ])
+        
+        # Keep actual code in source_files
+        source_files = []
+        if content and content != "*File content could not be retrieved*":
+            source_files.append(SourceFile(
+                path=path,
+                content=content,
+                language=lang,
+                size_bytes=len(content.encode('utf-8')),
+            ))
 
         return ExtractionResult(
             markdown=markdown,
@@ -365,12 +379,18 @@ class GitExtractor(BaseExtractor):
                 "filename": filename,
                 "extraction_method": "github_api",
             },
+            source_files=source_files,
         )
 
     async def _extract_github_directory(
         self, owner: str, repo: str, branch: str, path: str, url: str
     ) -> ExtractionResult:
-        """Extract a directory via GitHub API."""
+        """Extract a directory via GitHub API.
+        
+        Code files are kept in source_files, not converted to markdown.
+        """
+        from ...types import SourceFile
+        
         api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}?ref={branch}"
         contents = await self._api_request(api_url)
 
@@ -405,10 +425,13 @@ class GitExtractor(BaseExtractor):
                 markdown_parts.append(f"- 📄 {f.get('name', '')} ({size_str})")
             markdown_parts.append("")
 
-        # Extract file contents
+        # Extract file contents to source_files (not markdown)
         markdown_parts.append("## File Contents")
         markdown_parts.append("")
+        markdown_parts.append("Source code files are processed separately by the processor.")
+        markdown_parts.append("")
 
+        source_files = []
         extracted_count = 0
         for item in files:
             if extracted_count >= self.config.max_total_files:
@@ -429,14 +452,14 @@ class GitExtractor(BaseExtractor):
                     if file_data.get("content"):
                         content = base64.b64decode(file_data["content"]).decode("utf-8", errors="replace")
                         lang = self._detect_language(Path(name))
-                        markdown_parts.extend([
-                            f"### {name}",
-                            "",
-                            f"```{lang}",
-                            content,
-                            "```",
-                            "",
-                        ])
+                        
+                        # Add to source_files instead of markdown
+                        source_files.append(SourceFile(
+                            path=file_path,
+                            content=content,
+                            language=lang,
+                            size_bytes=size,
+                        ))
                         extracted_count += 1
                 except Exception:
                     pass
@@ -456,6 +479,7 @@ class GitExtractor(BaseExtractor):
                 "dir_count": len(dirs),
                 "extraction_method": "github_api",
             },
+            source_files=source_files,
         )
 
     async def _extract_github_repo_hybrid(
@@ -716,27 +740,27 @@ class GitExtractor(BaseExtractor):
             source=source,
         )
 
-        # Build source_files list if keep_source_files is enabled
+        # Build source_files list with all code files
+        # Code files are kept separate and NOT converted to markdown
         source_files = []
-        if self.config.keep_source_files:
-            # Source code extensions for processor code chunking
-            code_extensions = {
-                ".py", ".js", ".ts", ".jsx", ".tsx", ".java", ".c", ".cpp", ".h", ".hpp",
-                ".go", ".rs", ".rb", ".php", ".swift", ".kt", ".scala",
-                ".sh", ".bash", ".zsh",
-            }
-            for file_info in files_content:
-                if file_info.get("type") == "text" and file_info.get("content"):
-                    path = file_info["path"]
-                    ext = Path(path).suffix.lower()
-                    # Only include source code files
-                    if ext in code_extensions:
-                        source_files.append(SourceFile(
-                            path=path,
-                            content=file_info["content"],
-                            language=file_info.get("language"),
-                            size_bytes=file_info.get("size", 0),
-                        ))
+        code_extensions = {
+            ".py", ".js", ".ts", ".jsx", ".tsx", ".java", ".c", ".cpp", ".h", ".hpp",
+            ".go", ".rs", ".rb", ".php", ".swift", ".kt", ".scala",
+            ".sh", ".bash", ".zsh", ".html", ".css", ".scss", ".json", ".yaml", ".yml",
+            ".xml", ".toml", ".sql", ".graphql",
+        }
+        for file_info in files_content:
+            if file_info.get("type") == "text" and file_info.get("content"):
+                path = file_info["path"]
+                ext = Path(path).suffix.lower()
+                # Include all code and config files in source_files
+                if ext in code_extensions:
+                    source_files.append(SourceFile(
+                        path=path,
+                        content=file_info["content"],
+                        language=file_info.get("language"),
+                        size_bytes=file_info.get("size", 0),
+                    ))
 
         return ExtractionResult(
             markdown=markdown,
@@ -996,9 +1020,14 @@ class GitExtractor(BaseExtractor):
         files: list[dict[str, Any]],
         source: str,
     ) -> str:
-        """Build the final markdown document."""
+        """Build the final markdown document with metadata and README only.
+        
+        Source code files are NOT converted to markdown - they are kept
+        separate in source_files for direct processing by the processor.
+        """
         lines = [f"# {repo_name}", ""]
 
+        # Repository metadata
         lines.extend(["## Repository Info", ""])
         lines.append(f"- **Source:** `{source}`")
 
@@ -1014,11 +1043,13 @@ class GitExtractor(BaseExtractor):
         lines.append(f"- **Extracted:** {metadata.get('extracted_at', 'N/A')}")
         lines.extend(["", ""])
 
+        # Directory structure
         lines.extend([
             "## Directory Structure", "",
             "```", structure, "```", "",
         ])
 
+        # File statistics
         text_files = [f for f in files if f.get("type") == "text"]
         skipped_files = [f for f in files if f.get("type") == "skipped"]
         binary_files = [f for f in files if f.get("type") == "binary"]
@@ -1032,25 +1063,29 @@ class GitExtractor(BaseExtractor):
             lines.append(f"- **Binary Files:** {len(binary_files)}")
         lines.extend(["", ""])
 
+        # Include README if present (documentation, not source code)
         readme_files = [f for f in text_files if f["path"].lower().startswith("readme")]
         if readme_files:
             readme = readme_files[0]
             lines.extend(["## README", "", readme["content"], ""])
 
+        # List source files without their content
+        # (actual source code is in source_files, not markdown)
         code_files = [f for f in text_files if not f["path"].lower().startswith("readme")]
         if code_files:
             lines.extend(["## Source Files", ""])
-
-            for file_info in code_files:
+            lines.append("Source code files are processed separately by the processor.")
+            lines.append("File list:")
+            lines.append("")
+            for file_info in code_files[:50]:  # List first 50 files
                 path = file_info["path"]
-                lang = file_info.get("language", "")
-                content = file_info["content"]
+                size = file_info.get("size", 0)
+                lines.append(f"- `{path}` ({size:,} bytes)")
+            if len(code_files) > 50:
+                lines.append(f"- ... and {len(code_files) - 50} more files")
+            lines.append("")
 
-                lines.extend([
-                    f"### `{path}`", "",
-                    f"```{lang}", content.rstrip(), "```", "",
-                ])
-
+        # List skipped files
         if skipped_files:
             lines.extend([
                 "## Skipped Files", "",
@@ -1062,6 +1097,7 @@ class GitExtractor(BaseExtractor):
                 lines.append(f"- ... and {len(skipped_files) - 20} more")
             lines.append("")
 
+        # Update metadata
         metadata["file_count"] = len(text_files)
         metadata["skipped_count"] = len(skipped_files)
         metadata["binary_count"] = len(binary_files)

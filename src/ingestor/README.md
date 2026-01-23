@@ -23,7 +23,7 @@ Uses Google Magika file detection.
 | Audio | .wav ✅  .mp3 🟡  .flac 🟡 | Whisper transcription |
 | Web | URLs ✅ | Deep crawling (Crawl4AI) |
 | YouTube | Videos ✅  Playlists ✅ | Transcripts |
-| Git/GitHub | URLs ✅ | Clone, API, SSH, submodules |
+| Git/GitHub | URLs ✅ | Clone + extract source files (no markdown conversion) |
 | Archives | .zip ✅ | Recursive extraction |
 
 ✅ = tested with real files
@@ -205,11 +205,24 @@ ingestor ingest "https://youtube.com/playlist?list=..." --playlist
 
 ### Git Repositories
 
-The unified Git extractor supports both GitHub API access (for specific files/directories) and full git clone (for any server).
+The unified Git extractor clones repositories and extracts source code files directly.
+
+#### What Gets Extracted
+
+**Markdown output includes:**
+- Repository metadata (branch, commit, stars, forks)
+- Directory structure tree
+- README content (documentation)
+- File statistics
+
+**Source code files are kept separate** in `source_files/` directory:
+- Original file content (no markdown wrapping)
+- All code and config files (`.py`, `.js`, `.json`, `.yaml`, etc.)
+- Ready for direct processing by the code-aware chunker
 
 #### Quick Access via GitHub API
 ```bash
-# Extract entire repository (README, metadata, key files)
+# Extract entire repository (clones and processes)
 ingestor ingest "https://github.com/owner/repo" -o ./output
 
 # Extract a specific file
@@ -246,10 +259,9 @@ ingestor clone https://github.com/owner/repo --submodules
 
 # Limit files processed
 ingestor clone https://github.com/owner/repo --max-files 100 --max-file-size 100000
-
-# Keep original source files (for code-aware RAG chunking)
-ingestor clone https://github.com/owner/repo --keep-source
 ```
+
+**Note:** The `--keep-source` flag is deprecated - source files are now always extracted separately for proper code processing.
 
 #### Private Repository Authentication
 
@@ -297,9 +309,17 @@ ingestor clone repos.download_git -o ./output
 ```
 output/
 ├── repo_name/
-│   ├── repo_name.md       # Combined markdown with all files
-│   └── img/               # Extracted images (if any)
+│   ├── repo_name.md           # Metadata, structure, README only
+│   ├── source/                # Source code files (original format)
+│   │   ├── src/
+│   │   │   ├── main.py
+│   │   │   └── utils.js
+│   │   ├── config.json
+│   │   └── README.md
+│   └── img/                   # Extracted images (if any)
 ```
+
+**Key Point:** Source code is NOT wrapped in markdown fenced code blocks. Files in `source/` are the original code ready for AST-based chunking by the processor.
 
 ## Output Structure
 

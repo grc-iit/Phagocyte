@@ -248,7 +248,7 @@ def crawl(ctx: click.Context, url: str, **kwargs):
 @click.option("--commit", type=str, help="Checkout specific commit after clone")
 @click.option("--token", type=str, envvar="GITHUB_TOKEN", help="Git token for private repos")
 @click.option("--submodules", is_flag=True, help="Include git submodules")
-@click.option("--max-files", type=int, default=500, help="Maximum files to process")
+@click.option("--max-files", type=int, default=10000, help="Maximum files to process")
 @click.option("--max-file-size", type=int, default=500000, help="Maximum file size in bytes")
 @click.option("--include-binary", is_flag=True, help="Include binary file metadata")
 @click.option("--keep-source", is_flag=True, help="Keep source code files separately (for processor code chunking)")
@@ -283,7 +283,7 @@ def clone(ctx: click.Context, repo: str, **kwargs):
             tag=kwargs.get("tag"),
             commit=kwargs.get("commit"),
             include_submodules=kwargs.get("submodules", False),
-            max_total_files=kwargs.get("max_files", 500),
+            max_total_files=kwargs.get("max_files", 10000),
             max_file_size=kwargs.get("max_file_size", 500000),
             include_binary_metadata=kwargs.get("include_binary", False),
             keep_source_files=kwargs.get("keep_source", False),
