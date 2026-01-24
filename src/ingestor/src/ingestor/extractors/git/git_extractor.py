@@ -30,15 +30,8 @@ class GitRepoConfig:
     """Configuration for git repository extraction."""
 
     # Clone options
-    shallow: bool = True  # Use shallow clone (--depth 1)
-    depth: int = 1  # Clone depth for shallow clone
+    shallow: bool = False  # Always use full clone
     branch: str | None = None  # Specific branch to clone
-    tag: str | None = None  # Specific tag to clone
-    commit: str | None = None  # Specific commit to checkout
-
-    # Output options
-    keep_source_files: bool = False  # Copy source files to output (for processor code chunking)
-    source_files_dir: str = "source"  # Subdirectory name for source files
 
     # File filtering
     include_extensions: set[str] = field(default_factory=lambda: {
@@ -58,22 +51,34 @@ class GitRepoConfig:
     })
 
     exclude_patterns: set[str] = field(default_factory=lambda: {
-        # Directories
-        "node_modules/", "vendor/", "venv/", ".venv/", "__pycache__/",
-        ".git/", ".svn/", ".hg/", "dist/", "build/", "target/",
-        "coverage/", ".coverage/", ".pytest_cache/", ".mypy_cache/",
-        ".tox/", "eggs/", "*.egg-info/",
-        # Files
-        "*.min.js", "*.min.css", "*.map",
+        # Version control and CI/CD
+        ".git/", ".svn/", ".hg/", ".github/", ".gitlab/", ".circleci/",
+        # Build artifacts and dependencies
+        "node_modules/", "vendor/", "dist/", "build/", "target/", "out/",
+        # Python
+        "venv/", ".venv/", "__pycache__/", "*.pyc", "*.pyo", "*.pyd",
+        ".pytest_cache/", ".mypy_cache/", ".tox/", "eggs/", "*.egg-info/",
+        ".coverage/", "htmlcov/", ".hypothesis/",
+        # Logs and temporary files
+        "*.log", "logs/", "*.tmp", "*.temp", ".DS_Store", "Thumbs.db",
+        # IDE and editor files
+        ".vscode/", ".idea/", "*.swp", "*.swo", "*~", ".project", ".classpath",
+        # Docker and containers
+        ".dockerignore", "docker-compose.yml", "docker-compose.yaml",
+        # Lock files
         "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
-        "Cargo.lock", "poetry.lock", "Pipfile.lock",
+        "Cargo.lock", "poetry.lock", "Pipfile.lock", "composer.lock",
+        # Minified files
+        "*.min.js", "*.min.css", "*.map",
+        # Cache directories
+        ".cache/", ".parcel-cache/", ".next/", ".nuxt/", 
+        # Test coverage
+        "coverage/", ".nyc_output/",
     })
 
     # Processing options
     max_file_size: int = 500_000  # 500KB max per file
     max_total_files: int = 10_000  # Maximum files to process
-    include_binary_metadata: bool = False  # Extract metadata from binary files
-    include_submodules: bool = False  # Process git submodules
 
     # Important files to always include
     important_files: set[str] = field(default_factory=lambda: {
@@ -1063,15 +1068,49 @@ class GitExtractor(BaseExtractor):
             lines.append(f"- **Binary Files:** {len(binary_files)}")
         lines.extend(["", ""])
 
-        # Include README if present (documentation, not source code)
-        readme_files = [f for f in text_files if f["path"].lower().startswith("readme")]
-        if readme_files:
-            readme = readme_files[0]
-            lines.extend(["## README", "", readme["content"], ""])
-
-        # List source files without their content
+        # Include ALL documentation files with their content
+        # Documentation extensions that should be included in markdown
+        doc_extensions = {".md", ".rst", ".txt", ".markdown", ".adoc", ".asciidoc"}
+        
+        # Separate documentation files from source code files
+        doc_files = []
+        code_files = []
+        
+        for f in text_files:
+            file_path = Path(f["path"])
+            ext = file_path.suffix.lower()
+            name_lower = file_path.name.lower()
+            
+            # Check if it's a documentation file
+            is_doc_file = (
+                ext in doc_extensions or 
+                name_lower in {"readme", "license", "changelog", "contributing", "code_of_conduct", "security"}
+            )
+            
+            if is_doc_file:
+                doc_files.append(f)
+            else:
+                code_files.append(f)
+        
+        # Include all documentation files with their content
+        if doc_files:
+            lines.extend(["## Documentation Files", ""])
+            for doc_file in doc_files:
+                doc_path = doc_file["path"]
+                doc_content = doc_file["content"]
+                doc_size = doc_file.get("size", 0)
+                
+                lines.extend([
+                    f"### {doc_path} ({doc_size:,} bytes)",
+                    "",
+                    doc_content,
+                    "",
+                    "---",
+                    ""
+                ])
+        
+        # List source code files without their content  
         # (actual source code is in source_files, not markdown)
-        code_files = [f for f in text_files if not f["path"].lower().startswith("readme")]
         if code_files:
             lines.extend(["## Source Files", ""])
             lines.append("Source code files are processed separately by the processor.")

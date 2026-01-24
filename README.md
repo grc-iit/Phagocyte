@@ -46,6 +46,12 @@ uv run phagocyte ingest batch ./papers -o ./markdown
 uv run phagocyte process run ./markdown -o ./lancedb
 uv run phagocyte process search ./lancedb "chunking strategies"
 
+# Clone GitHub repositories preserving original structure
+uv run phagocyte ingest clone https://github.com/user/repo --output ./github
+
+# Clone specific branch
+uv run phagocyte ingest clone https://github.com/user/repo --branch develop --output ./github
+
 # For crawled documentation sites (filter out TOC/navigation pages)
 uv run phagocyte ingest crawl https://docs.example.com --max-pages 500 -o ./docs
 uv run phagocyte ingest filter ./docs --detect-toc --remove

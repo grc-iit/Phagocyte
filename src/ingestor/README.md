@@ -23,7 +23,7 @@ Uses Google Magika file detection.
 | Audio | .wav ✅  .mp3 🟡  .flac 🟡 | Whisper transcription |
 | Web | URLs ✅ | Deep crawling (Crawl4AI) |
 | YouTube | Videos ✅  Playlists ✅ | Transcripts |
-| Git/GitHub | URLs ✅ | Clone + extract source files (no markdown conversion) |
+| Git/GitHub | URLs ✅ | Full clone + extract all documentation files with content |
 | Archives | .zip ✅ | Recursive extraction |
 
 ✅ = tested with real files
@@ -88,6 +88,57 @@ ingestor ingest "https://example.com" -o ./crawled
 ingestor batch ./documents -o ./output
 ingestor batch ./docs --recursive --concurrency 10
 ```
+
+### Git/GitHub Repositories
+
+The Git extractor performs a simple `git clone` and copies files to the output directory, preserving the original repository structure while filtering out unwanted files.
+
+```bash
+# Clone repository (default: full clone)
+ingestor clone https://github.com/user/repo --output ./github
+
+# Clone specific branch
+ingestor clone https://github.com/user/repo --branch develop --output ./github
+
+# Set max files limit
+ingestor clone https://github.com/user/repo --max-files 1000 --output ./github
+```
+
+**What gets preserved:**
+- Original repository structure (all directories and files)
+- All documentation files (README.md, docs/, *.md, *.rst, *.txt)
+- All source code files (*.py, *.js, *.java, *.c, *.cpp, etc.)
+- Configuration files needed for understanding the codebase
+
+**What gets excluded (automatic filtering):**
+
+*Directories:*
+- `.git/`, `.github/`, `.gitlab/`, `.circleci/`, `.travis/` (version control/CI)
+- `node_modules/`, `vendor/`, `bower_components/` (dependencies)
+- `dist/`, `target/` (build outputs)
+- `__pycache__/`, `.venv/`, `venv/`, `.eggs/` (Python artifacts)
+- `.vscode/`, `.idea/`, `.claude/` (IDE/AI assistant files)
+- `logs/`, `docker/`, `coverage/` (logs, containers, test coverage)
+
+*Files:*
+- Build/dependency configs: `requirements.txt`, `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`
+- Docker files: `Dockerfile`, `docker-compose.yml`, `.dockerignore`
+- CI/CD configs: `.travis.yml`, `Jenkinsfile`, `azure-pipelines.yml`
+- License/legal: `LICENSE`, `COPYRIGHT`, `AUTHORS`
+- Changelogs: `CHANGELOG.md`, `HISTORY.md`
+- Community files: `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`
+- Editor configs: `.editorconfig`, `.prettierrc`, `.eslintrc`, `.pylintrc`
+- Test configs: `tox.ini`, `pytest.ini`, `.coveragerc`
+- Init files: `__init__.py`
+- Deployment configs: YAML/YML/XML/conf files (*.yaml, *.yml, *.xml, *.conf)
+- Scripts: Shell scripts (*.sh), batch files (*.bat), SLURM files (*.slurm)
+- Binary/compiled: *.pyc, *.so, *.dll, *.exe, *.class, *.jar
+- Images: *.png, *.jpg, *.gif, *.svg, *.ico
+- Archives: *.zip, *.tar, *.gz
+- Logs: *.log, *.lock, *.info
+- Fortran/params: *.f, *.param
+
+This filtering ensures only relevant source code and documentation are included for QA generation and RAG processing.
 
 ### PDF Documents
 

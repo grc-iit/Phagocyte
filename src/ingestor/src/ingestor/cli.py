@@ -241,18 +241,9 @@ def crawl(ctx: click.Context, url: str, **kwargs):
 @main.command()
 @click.argument("repo", type=str)
 @click.option("-o", "--output", type=click.Path(), default="./output", help="Output directory")
-@click.option("--shallow/--full", default=True, help="Use shallow clone (default: shallow)")
-@click.option("--depth", type=int, default=1, help="Clone depth for shallow clones")
 @click.option("--branch", type=str, help="Clone specific branch")
-@click.option("--tag", type=str, help="Clone specific tag")
-@click.option("--commit", type=str, help="Checkout specific commit after clone")
 @click.option("--token", type=str, envvar="GITHUB_TOKEN", help="Git token for private repos")
-@click.option("--submodules", is_flag=True, help="Include git submodules")
 @click.option("--max-files", type=int, default=10000, help="Maximum files to process")
-@click.option("--max-file-size", type=int, default=500000, help="Maximum file size in bytes")
-@click.option("--include-binary", is_flag=True, help="Include binary file metadata")
-@click.option("--keep-source", is_flag=True, help="Keep source code files separately (for processor code chunking)")
-@click.option("--metadata", is_flag=True, help="Generate JSON metadata files")
 @click.option("-v", "--verbose", is_flag=True, help="Verbose output")
 @click.pass_context
 def clone(ctx: click.Context, repo: str, **kwargs):
@@ -272,70 +263,125 @@ def clone(ctx: click.Context, repo: str, **kwargs):
     config = create_config(ctx)
 
     async def run():
-        from .extractors.git.git_extractor import GitExtractor, GitRepoConfig
-        from .output.writer import OutputWriter
-
-        # Create git-specific config
-        git_config = GitRepoConfig(
-            shallow=kwargs.get("shallow", True),
-            depth=kwargs.get("depth", 1),
-            branch=kwargs.get("branch"),
-            tag=kwargs.get("tag"),
-            commit=kwargs.get("commit"),
-            include_submodules=kwargs.get("submodules", False),
-            max_total_files=kwargs.get("max_files", 10000),
-            max_file_size=kwargs.get("max_file_size", 500000),
-            include_binary_metadata=kwargs.get("include_binary", False),
-            keep_source_files=kwargs.get("keep_source", False),
-        )
-
-        # Create registry for nested extractions
-        registry = _create_registry()
-
-        extractor = GitExtractor(
-            config=git_config,
-            token=kwargs.get("token"),
-            registry=registry,
-        )
-        writer = OutputWriter(config)
+        import shutil
+        import subprocess
+        import tempfile
+        from pathlib import Path
 
         console.print(f"Cloning repository: {repo}")
-        if git_config.branch:
-            console.print(f"  Branch: {git_config.branch}")
-        if git_config.tag:
-            console.print(f"  Tag: {git_config.tag}")
-        if git_config.shallow:
-            console.print(f"  Shallow clone: depth={git_config.depth}")
-        if git_config.keep_source_files:
-            console.print(f"  Keep source files: enabled")
-
-        with Progress(
-            SpinnerColumn(spinner_name=_SPINNER),
-            TextColumn("[progress.description]{task.description}"),
-            console=console,
-        ) as progress:
-            task = progress.add_task("Cloning and processing...", total=None)
-
+        if kwargs.get("branch"):
+            console.print(f"  Branch: {kwargs.get('branch')}")
+        
+        with tempfile.TemporaryDirectory() as tmpdir:
+            clone_path = Path(tmpdir) / "repo"
+            
+            # Build git clone command
+            cmd = ["git", "clone"]
+            if kwargs.get("branch"):
+                cmd.extend(["--branch", kwargs.get("branch")])
+            cmd.extend([repo, str(clone_path)])
+            
+            # Clone the repository
             try:
-                result = await extractor.extract(repo)
-                progress.update(task, description="Writing output...")
-                output_path = await writer.write(result)
-                progress.update(task, completed=True, description="Done!")
-
-                console.print(f"\n[green]Success![/green] Output written to: {output_path}")
-                file_count = result.metadata.get("file_count", 0)
-                console.print(f"  Files processed: {file_count}")
-                if result.metadata.get("skipped_count"):
-                    console.print(f"  Files skipped: {result.metadata['skipped_count']}")
-                if result.has_images:
-                    console.print(f"  Images: {result.image_count}")
-
-            except Exception as e:
-                progress.stop()
-                console.print(f"[red]Error:[/red] {e}")
-                if config.verbose:
-                    console.print_exception()
+                subprocess.run(cmd, check=True, capture_output=True, text=True)
+            except subprocess.CalledProcessError as e:
+                console.print(f"[red]Error cloning repository:[/red] {e.stderr}")
                 raise SystemExit(1) from e
+            
+            # Determine output path
+            repo_name = repo.rstrip("/").split("/")[-1].replace(".git", "")
+            output_dir = Path(config.output_dir) / repo_name
+            
+            # Remove if exists
+            if output_dir.exists():
+                shutil.rmtree(output_dir)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Excluded directories - only infrastructure/cache/dependencies, not content
+            exclude_dirs = {".git", ".github", ".gitlab", ".circleci", "__pycache__", 
+                           ".pytest_cache", ".mypy_cache", ".tox", "node_modules", "vendor", 
+                           "dist", "target", ".venv", "venv", ".coverage", "htmlcov",
+                           ".vscode", ".idea", ".claude", "coverage", ".nyc_output",
+                           ".eggs", ".ruff_cache", ".hypothesis",
+                           "logs", "log", ".logs", "docker", ".travis", ".azure",
+                           "bower_components", "jspm_packages"}
+            
+            # Excluded files
+            exclude_files = {
+                ".gitignore", ".gitattributes", ".gitmodules",
+                "requirements.txt", "requirements-dev.txt", "dev-requirements.txt",
+                "pyproject.toml", "setup.py", "setup.cfg", "MANIFEST.in",
+                "package.json", "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
+                "Pipfile", "Pipfile.lock", "poetry.lock",
+                "Cargo.toml", "Cargo.lock", "go.mod", "go.sum",
+                "Dockerfile", "docker-compose.yml", "docker-compose.yaml", ".dockerignore",
+                "Dockerfile.dev", "Dockerfile.prod", "Dockerfile.test",
+                "Makefile", "CMakeLists.txt",
+                "LICENSE", "LICENSE.txt", "LICENSE.md", "LICENCE", "LICENCE.txt", "LICENCE.md",
+                "COPYING", "COPYRIGHT", "AUTHORS", "CONTRIBUTORS",
+                "CHANGELOG", "CHANGELOG.md", "HISTORY.md", "CHANGES",
+                "CODE_OF_CONDUCT.md", "CONTRIBUTING.md", "SECURITY.md",
+                ".editorconfig", ".prettierrc", ".eslintrc", ".eslintrc.js", ".eslintrc.json",
+                ".pylintrc", ".flake8", ".pre-commit-config.yaml", "pylintrc",
+                ".coveragerc", "coverage.xml", ".coverage",
+                "tox.ini", "pytest.ini", ".pytest.ini",
+                "__init__.py", "CLAUDE.md", "logg.txt",
+                "config.yaml", "config.yml", "config.json",
+                "meta.yaml", "build.sh", "pr.sh", "lcov.info",
+                "None", "none", "NONE",
+                ".clang-format", ".clang-tidy", ".shellcheck_exclude_paths", "CODEOWNERS",
+            }
+            
+            # Excluded file patterns (extensions)
+            exclude_extensions = {
+                ".log", ".lock", ".rst", ".bat", ".info",
+                ".sh", ".slurm",
+                ".pyc", ".pyo", ".pyd", ".so", ".dll", ".exe", ".o", ".a",
+                ".class", ".jar", ".war",
+                ".png", ".jpg", ".jpeg", ".gif", ".ico", ".svg",
+                ".zip", ".tar", ".gz", ".bz2",
+                ".yaml", ".yml", ".xml", ".conf", ".param",
+                ".cmake", ".in", ".txt", ".bin", ".dox", ".ops",
+                ".tex", ".supp", ".m4", ".fig", ".pl", ".out", ".dockerfile",
+                ".pdf",
+                ".eps", ".0", ".session", ".idx", ".gui", ".y", ".l",
+                ".h5", ".bp", ".hdf5",
+                ".ddl", ".tst", ".ls", ".err", ".exp", ".dat", ".sample", ".8", ".onion",
+                ".properties", ".orig", ".html", ".htm", ".css", ".am",
+            }
+            
+            # Copy entire repo structure, excluding specified directories and files
+            def should_exclude(path: Path) -> bool:
+                # Check if any parent directory is in exclude list
+                if any(part in exclude_dirs for part in path.parts):
+                    return True
+                # Check if filename is in exclude list (case-insensitive)
+                if path.name in exclude_files or path.name.lower() in {f.lower() for f in exclude_files}:
+                    return True
+                # Check if file extension is in exclude list
+                if path.suffix in exclude_extensions:
+                    return True
+                return False
+            
+            for item in clone_path.rglob("*"):
+                if should_exclude(item):
+                    continue
+                    
+                rel_path = item.relative_to(clone_path)
+                dest = output_dir / rel_path
+                
+                try:
+                    if item.is_file():
+                        dest.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(item, dest)
+                except Exception:
+                    pass
+            
+            # Count files
+            file_count = sum(1 for _ in output_dir.rglob("*") if _.is_file())
+            
+            console.print(f"\n[green]Success![/green] Repository cloned to: {output_dir}")
+            console.print(f"  Files: {file_count}")
 
     asyncio.run(run())
 

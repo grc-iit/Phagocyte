@@ -461,27 +461,26 @@ def ingest_crawl(url, output, max_pages, max_depth, strategy, include, exclude, 
 @ingest.command("clone")
 @click.argument("repo")
 @click.option("-o", "--output", default="./output", help="Output directory")
-@click.option("--branch", help="Branch to clone")
-@click.option("--shallow/--no-shallow", default=True, help="Shallow clone")
-@click.option("--max-files", default=500, help="Maximum files to process")
-@click.option("--keep-source", is_flag=True, help="Keep source code files separately (for processor code chunking)")
+@click.option("--branch", help="Clone specific branch")
+@click.option("--token", envvar="GITHUB_TOKEN", help="Git token for private repos")
+@click.option("--max-files", type=int, default=10000, help="Maximum files to process")
 @click.option("-v", "--verbose", is_flag=True, help="Verbose output")
-def ingest_clone(repo, output, branch, shallow, max_files, keep_source, verbose):
+def ingest_clone(repo, output, branch, token, max_files, verbose):
     """Clone and ingest a git repository.
 
     \b
     Examples:
       phagocyte ingest clone https://github.com/user/repo
-      phagocyte ingest clone git@github.com:user/repo.git --branch develop
-      phagocyte ingest clone https://github.com/user/repo --keep-source
+      phagocyte ingest clone https://github.com/user/repo --branch develop
+      phagocyte ingest clone git@github.com:user/repo.git --token $TOKEN
     """
-    args = ["clone", repo, "-o", output, "--max-files", str(max_files)]
+    args = ["clone", repo, "-o", output]
     if branch:
         args.extend(["--branch", branch])
-    if not shallow:
-        args.append("--no-shallow")
-    if keep_source:
-        args.append("--keep-source")
+    if token:
+        args.extend(["--token", token])
+    if max_files:
+        args.extend(["--max-files", str(max_files)])
     if verbose:
         args.append("-v")
     sys.exit(run_module("ingestor", args))
