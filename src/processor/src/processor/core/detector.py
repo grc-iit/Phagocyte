@@ -150,6 +150,7 @@ class ContentDetector:
         - Files in skip directories (.git, __pycache__, etc.)
         - Files matching skip patterns (_raw.md, .bib, .backup)
         - Files with skip extensions (.json)
+        - Files with no extension (shell scripts, binaries)
         - Binary files (images, PDFs, archives, etc.)
         """
         # Skip hidden files
@@ -171,14 +172,25 @@ class ContentDetector:
         if file_path.suffix.lower() in SKIP_EXTENSIONS:
             return False
 
+        # Skip files with no extension (shell scripts, binaries, etc.)
+        if not file_path.suffix:
+            return False
+
         # Skip non-text files (binary)
         binary_extensions = {
-            ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".svg",
+            ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".svg", ".icns",
             ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
             ".zip", ".tar", ".gz", ".rar", ".7z",
             ".exe", ".dll", ".so", ".dylib",
             ".pyc", ".pyo", ".class", ".o", ".a",
             ".mp3", ".mp4", ".wav", ".avi", ".mov",
+            ".f90", ".F90",  # Fortran source files
+            ".pal", ".rc", ".wri", ".nc", ".last", ".cff",  # Data/config files
+            ".entitlements", ".h5import", ".h5dwalk",  # Binary tools
+            ".dtd", ".xsd",  # Schema files
+            ".plantuml",  # Diagram files
+            ".subfile_1_of_2", ".subfile_2_of_2", ".subfile_1_of_1",  # Split files
+            ".9", ".3",  # Unknown binary files
         }
 
         return file_path.suffix.lower() not in binary_extensions

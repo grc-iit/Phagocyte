@@ -275,17 +275,20 @@ def clone(ctx: click.Context, repo: str, **kwargs):
         with tempfile.TemporaryDirectory() as tmpdir:
             clone_path = Path(tmpdir) / "repo"
             
-            # Build git clone command
-            cmd = ["git", "clone"]
+            # Build git clone command with progress and shallow clone for faster downloads
+            cmd = ["git", "clone", "--progress", "--depth", "1"]
             if kwargs.get("branch"):
                 cmd.extend(["--branch", kwargs.get("branch")])
             cmd.extend([repo, str(clone_path)])
             
-            # Clone the repository
+            # Clone the repository with visible progress
+            console.print(f"[cyan]Starting shallow clone (latest commit only)...[/cyan]")
             try:
-                subprocess.run(cmd, check=True, capture_output=True, text=True)
+                # Let git output go directly to terminal for real-time progress
+                result = subprocess.run(cmd, check=True, text=True)
             except subprocess.CalledProcessError as e:
-                console.print(f"[red]Error cloning repository:[/red] {e.stderr}")
+                console.print(f"[red]Error cloning repository:[/red] {e}")
+                raise SystemExit(1) from e
                 raise SystemExit(1) from e
             
             # Determine output path
